@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy — Hearally</title>
+<meta name="description" content="What Hearally collects, where it is processed, who sees it, and how long it is kept.">
+<link rel="canonical" href="https://hearally.com/privacy/">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&amp;family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/styles.css?v=75c1501c8d">
+</head>
+<body>
+
+<header class="bg-ink">
+  <div class="mx-auto flex max-w-3xl items-center gap-3 px-6 py-6">
+    <a href="/" class="font-sans text-2xl font-bold tracking-tight text-amber no-underline">hearally</a>
+    <span class="hidden rounded bg-ink-2 px-2 py-0.5 font-sans text-xs font-semibold text-muted-dark sm:inline">Public preview (beta)</span>
+  </div>
+</header>
+
+<main class="mx-auto max-w-3xl px-6 py-16">
+  <h1 class="text-[2.25rem] font-semibold leading-tight">Privacy</h1>
+  <p class="mt-3 text-muted">Last updated 1 October 2026.</p>
+
+  <p class="mt-8 text-lg">Hearally listens to part of your life so it can tell the people you choose about the things you would want them to know. That only works if you can trust exactly what happens to what it hears. This page says so plainly.</p>
+
+  <h2 class="mt-14 text-2xl font-semibold">The short version</h2>
+  <ul class="mt-4 list-disc space-y-2 pl-6 text-muted">
+    <li>You decide who hears what. Nobody else receives anything.</li>
+    <li>Full transcripts are never stored. What we keep is a short summary of each thing worth passing on.</li>
+    <li>Account numbers are silenced in the audio itself, and the unredacted original is deleted.</li>
+    <li>We do not sell your data, show you ads, or use your recordings to train AI models, and neither do the companies that process them for us.</li>
+    <li>Hearally is for people 18 or older.</li>
+  </ul>
+
+  <h2 class="mt-14 text-2xl font-semibold">Only record what you have the right to record</h2>
+  <p class="mt-4">You may only upload recordings you have the legal right to make. The law on recording differs from place to place. Some places, including several US states, require <strong>everyone</strong> taking part in a conversation, phone calls included, to agree to being recorded. Where the law requires that, you must get that agreement before you record.</p>
+  <p class="mt-4">You confirm this in your dashboard before any recording comes in, and you are responsible for what you record and upload. Hearally is not able to check whether a recording was made lawfully, and does not do so.</p>
+
+  <h2 class="mt-14 text-2xl font-semibold">What we collect</h2>
+  <dl class="mt-4 border-t border-line">
+    <div class="border-b border-line py-4"><dt class="font-semibold">Your account</dt><dd class="mt-1 text-muted">Your email address and sign-in details, and the settings you choose.</dd></div>
+    <div class="border-b border-line py-4"><dt class="font-semibold">Your recordings</dt><dd class="mt-1 text-muted">Audio from your Plaud recorder, and when it was recorded, length and how it arrived.</dd></div>
+    <div class="border-b border-line py-4"><dt class="font-semibold">Your Plaud connection</dt><dd class="mt-1 text-muted">If you sign in to Plaud from Hearally, the sign-in Plaud gives us, kept apart from everything else and used only to fetch new recordings.</dd></div>
+    <div class="border-b border-line py-4"><dt class="font-semibold">Consent records</dt><dd class="mt-1 text-muted">What you agreed to and when. Once allies are available, also what each ally agreed to and when.</dd></div>
+    <div class="border-b border-line py-4"><dt class="font-semibold">Your allies, once available</dt><dd class="mt-1 text-muted">The name, phone number, email address and language of each person you add, what you have chosen to let each one hear, and what was sent to them.</dd></div>
+  </dl>
+
+  <h2 class="mt-14 text-2xl font-semibold">How recordings reach us</h2>
+  <ul class="mt-4 list-disc space-y-2 pl-6">
+    <li><strong>Plaud sign-in.</strong> You sign in to Plaud once, on Plaud&rsquo;s own page. About every 15 minutes, Hearally fetches the audio of recordings made after you connected. Plaud&rsquo;s approval page lists more than that, including transcripts and summaries, because Plaud offers only one level of access. Hearally does not fetch them. You can disconnect at any time from your dashboard.</li>
+    <li><strong>The Hearally collector.</strong> A small program on your computer sends recordings you save to one folder.</li>
+  </ul>
+
+  <h2 class="mt-14 text-2xl font-semibold">How your recordings are processed</h2>
+  <ol class="mt-4 list-decimal space-y-3 pl-6">
+    <li>Your recording is stored, encrypted, at Amazon Web Services in the United States.</li>
+    <li>It is transcribed by NVIDIA&rsquo;s open Parakeet model, running on servers we operate on Nebius AI Cloud.</li>
+    <li>Account numbers and similar details are found by their timing in the transcript and silenced in the audio. The unredacted original is then deleted. If processing fails, a safeguard deletes it automatically, which can take up to about two days.</li>
+    <li>To decide what is worth passing on, the transcript, with long numbers masked, is sent to NVIDIA&rsquo;s open Nemotron model, hosted by Nebius. We use Nebius with <strong>zero data retention</strong>, which means Nebius does not store what we send once it has answered. Nebius states that it does not use customer content to train any AI model.</li>
+    <li>What comes back is a short summary, such as &ldquo;a new appointment on Thursday&rdquo;. That summary is what we keep. The transcript itself is deleted as soon as it has been read.</li>
+  </ol>
+  <p class="mt-4">Before anything is kept as a summary, our dignity filter holds back private material that is not a concern, such as a film playing in the room, and lists it for you alone.</p>
+
+  <h2 class="mt-14 text-2xl font-semibold">Who can see it</h2>
+  <ul class="mt-4 list-disc space-y-2 pl-6">
+    <li><strong>You</strong> can see everything about your account in your dashboard.</li>
+    <li><strong>Your allies</strong>, once available, will see only what you allowed each of them to see, through a private link that expires. Nothing is sent to anyone during the preview yet.</li>
+    <li><strong>Companies that run Hearally for us</strong> process data only to provide the service: Amazon Web Services (hosting, storage, email) and Nebius (the AI models). Once text messages are switched on, Twilio sends them. None of them may use it for their own purposes.</li>
+  </ul>
+  <p class="mt-4">We do not sell data, share it with advertisers, or use it for anything other than running Hearally for you.</p>
+
+  <h2 class="mt-14 text-2xl font-semibold">How long we keep it</h2>
+  <table class="mt-4 w-full border-collapse text-left">
+    <thead><tr class="border-b border-line text-sm uppercase tracking-wide text-muted"><th class="py-3 pr-4 font-semibold">What</th><th class="py-3 font-semibold">How long</th></tr></thead>
+    <tbody>
+      <tr class="border-b border-line"><td class="py-3 pr-4">Unredacted audio</td><td class="py-3 text-muted">Deleted once the silenced copy exists, normally within an hour. Never more than about two days.</td></tr>
+      <tr class="border-b border-line"><td class="py-3 pr-4">Full transcripts</td><td class="py-3 text-muted">Never stored. Deleted as soon as they have been read, and never more than about two days.</td></tr>
+      <tr class="border-b border-line"><td class="py-3 pr-4">Silenced audio</td><td class="py-3 text-muted">7 days.</td></tr>
+      <tr class="border-b border-line"><td class="py-3 pr-4">Summaries, heads-ups and held-back moments</td><td class="py-3 text-muted">90 days.</td></tr>
+      <tr class="border-b border-line"><td class="py-3 pr-4">The list of recordings received</td><td class="py-3 text-muted">90 days.</td></tr>
+      <tr class="border-b border-line"><td class="py-3 pr-4">Your Plaud connection</td><td class="py-3 text-muted">Until you disconnect Plaud or close your account.</td></tr>
+      <tr class="border-b border-line"><td class="py-3 pr-4">Consent records</td><td class="py-3 text-muted">For as long as your account exists, so there is always a record of what was agreed.</td></tr>
+    </tbody>
+  </table>
+  <p class="mt-3 text-sm text-muted">Automatic deletion can run a day or two behind the times shown.</p>
+
+  <h2 class="mt-14 text-2xl font-semibold">Your choices</h2>
+  <ul class="mt-4 list-disc space-y-2 pl-6">
+    <li>Disconnect Plaud, or any computer, from your dashboard at any time. Nothing new arrives after that.</li>
+    <li>Ask us to delete your summaries, or to close your account, by email to the address below. Your recordings, summaries and connections are then deleted, apart from records we are required by law to keep. Doing this from the dashboard is being built.</li>
+    <li>Once allies are available: change what any ally can hear, remove an ally, and let allies stop receiving messages at any time.</li>
+  </ul>
+
+  <h2 class="mt-14 text-2xl font-semibold">Contact</h2>
+  <p class="mt-4">Questions, requests to see or delete your data, or to close your account: <a href="mailto:info@email.famplified.com" class="font-semibold text-teal underline underline-offset-4">info@email.famplified.com</a>.</p>
+  <p class="mt-4 text-muted">See also the <a href="/terms/" class="text-teal underline underline-offset-4">terms of use</a>.</p>
+
+  <div class="mt-14 border-l-2 border-flag pl-6 text-muted">
+    <p>Hearally passes along things that were mentioned out loud. It is <strong class="text-ink">not an emergency service</strong> and <strong class="text-ink">not a medical device</strong>. <strong class="text-ink">In an emergency, call 911.</strong></p>
+  </div>
+</main>
+
+</body>
+</html>

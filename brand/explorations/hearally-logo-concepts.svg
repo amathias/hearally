@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 560" width="960" height="560" font-family="Inter, 'Segoe UI', system-ui, sans-serif">
+  <defs>
+    <style>
+      .ink { fill: #14243A; }
+      .teal { fill: #1F6F6B; }
+      .amber { fill: #E8934A; }
+      .sand { fill: #F6F1E8; }
+      .label { fill: #5A6672; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; }
+      .cap { fill: #14243A; font-size: 15px; }
+      .swatchtext { fill: #14243A; font-size: 11px; }
+      .stroke-teal { fill: none; stroke: #1F6F6B; stroke-linecap: round; }
+      .stroke-amber { fill: none; stroke: #E8934A; stroke-linecap: round; }
+      .stroke-sand { fill: none; stroke: #F6F1E8; stroke-linecap: round; }
+    </style>
+  </defs>
+
+  <rect width="960" height="560" fill="#FFFFFF"/>
+  <text x="48" y="48" class="cap" font-size="20" font-weight="600">Hearally — logo concepts</text>
+  <text x="48" y="72" class="label">three directions, same idea: someone beside you, hearing with you</text>
+
+  <!-- ================= Concept A: Beside ================= -->
+  <g transform="translate(48,110)">
+    <rect width="264" height="220" rx="16" fill="#FDFCFA" stroke="#E8E2D8"/>
+    <text x="16" y="28" class="label">A · Beside</text>
+
+    <!-- big dot = the wearer, arcs = listening, small dot = the ally -->
+    <g transform="translate(60,120)">
+      <circle cx="0" cy="0" r="17" class="teal"/>
+      <path d="M 30 -34 A 44 44 0 0 1 30 34" class="stroke-teal" stroke-width="9"/>
+      <path d="M 56 -52 A 68 68 0 0 1 56 52" class="stroke-amber" stroke-width="9"/>
+      <circle cx="122" cy="0" r="9" class="amber"/>
+    </g>
+    <text x="16" y="200" class="cap" font-size="13">Two people, shared sound. Works as a favicon.</text>
+  </g>
+
+  <!-- ================= Concept B: Monogram tile ================= -->
+  <g transform="translate(348,110)">
+    <rect width="264" height="220" rx="16" fill="#FDFCFA" stroke="#E8E2D8"/>
+    <text x="16" y="28" class="label">B · Monogram tile</text>
+
+    <g transform="translate(56,56)">
+      <rect width="152" height="152" rx="34" class="teal"/>
+      <!-- 'A' formed by two strokes, crossbar is a sound wave -->
+      <path d="M 46 112 L 76 44 L 106 112" class="stroke-sand" stroke-width="11" stroke-linejoin="round"/>
+      <path d="M 58 86 q 9 -12 18 0 t 18 0" class="stroke-amber" stroke-width="8"/>
+    </g>
+    <text x="16" y="200" class="cap" font-size="13">An “A” whose crossbar is a waveform.</text>
+  </g>
+
+  <!-- ================= Concept C: Wordmark ================= -->
+  <g transform="translate(648,110)">
+    <rect width="264" height="220" rx="16" fill="#FDFCFA" stroke="#E8E2D8"/>
+    <text x="16" y="28" class="label">C · Wordmark</text>
+
+    <g transform="translate(28,104)">
+      <circle cx="12" cy="14" r="8" class="teal"/>
+      <path d="M 28 0 A 22 22 0 0 1 28 28" class="stroke-teal" stroke-width="5"/>
+      <path d="M 42 -10 A 36 36 0 0 1 42 38" class="stroke-amber" stroke-width="5"/>
+      <text x="64" y="26" font-size="34" font-weight="600" class="ink">hear<tspan class="teal" font-weight="700">Ally</tspan></text>
+    </g>
+    <text x="16" y="200" class="cap" font-size="13">Lowercase “hear”, capital “Ally” — the break is visible.</text>
+  </g>
+
+  <!-- ================= Lockup ================= -->
+  <g transform="translate(48,360)">
+    <rect width="564" height="150" rx="16" fill="#14243A"/>
+    <g transform="translate(40,75)">
+      <circle cx="0" cy="0" r="12" fill="#F6F1E8"/>
+      <path d="M 21 -24 A 31 31 0 0 1 21 24" class="stroke-sand" stroke-width="6"/>
+      <path d="M 39 -37 A 48 48 0 0 1 39 37" class="stroke-amber" stroke-width="6"/>
+      <text x="108" y="4" font-size="38" font-weight="600" fill="#F6F1E8">hear<tspan fill="#E8934A" font-weight="700">Ally</tspan></text>
+      <text x="110" y="32" font-size="14" fill="#9FB0AE">an ally who hears</text>
+    </g>
+  </g>
+
+  <!-- ================= Palette ================= -->
+  <g transform="translate(648,360)">
+    <text x="0" y="0" class="label">Palette</text>
+    <g transform="translate(0,16)">
+      <rect width="60" height="60" rx="10" fill="#14243A"/><text x="0" y="76" class="swatchtext">Ink #14243A</text>
+      <rect x="72" width="60" height="60" rx="10" fill="#1F6F6B"/><text x="72" y="76" class="swatchtext">Teal #1F6F6B</text>
+      <rect x="144" width="60" height="60" rx="10" fill="#E8934A"/><text x="144" y="76" class="swatchtext">Amber #E8934A</text>
+      <rect x="216" width="60" height="60" rx="10" fill="#F6F1E8" stroke="#E8E2D8"/><text x="216" y="76" class="swatchtext">Sand #F6F1E8</text>
+    </g>
+    <g transform="translate(0,104)">
+      <rect width="60" height="36" rx="8" fill="#B4462F"/><text x="0" y="52" class="swatchtext">Flag #B4462F</text>
+      <rect x="72" width="60" height="36" rx="8" fill="#3E7A52"/><text x="72" y="52" class="swatchtext">Ok #3E7A52</text>
+      <rect x="144" width="132" height="36" rx="8" fill="#FDFCFA" stroke="#E8E2D8"/><text x="144" y="52" class="swatchtext">Paper #FDFCFA · Line #E8E2D8</text>
+    </g>
+  </g>
+</svg>

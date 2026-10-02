@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Integrations — Hearally</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&amp;family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/styles.css?v=75c1501c8d">
+</head>
+<body class="dashboard min-h-screen bg-sand text-ink" data-section="integrations">
+<a href="#main" class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-paper focus:px-4 focus:py-2 focus:font-semibold">Skip to content</a>
+
+<header class="flex items-center gap-3 bg-ink px-4 py-3 text-sand md:px-6">
+  <a href="/dashboard/" class="flex items-center gap-2.5 no-underline">
+    <svg width="40" height="28" viewBox="-60 -50 140 100" aria-hidden="true" class="shrink-0">
+      <circle cx="-20" cy="-13" r="11" fill="#F6F1E8"/>
+      <path d="M -38 17 A 18 18 0 0 1 -2 17" fill="none" stroke="#F6F1E8" stroke-width="8.5" stroke-linecap="round"/>
+      <circle cx="8" cy="-8" r="9" fill="#E8934A"/>
+      <path d="M -6 19 A 14 14 0 0 1 22 19" fill="none" stroke="#E8934A" stroke-width="7.5" stroke-linecap="round"/>
+      <path d="M 38 -20 A 26 26 0 0 1 38 20" fill="none" stroke="#F6F1E8" stroke-width="6" stroke-linecap="round"/>
+      <path d="M 54 -32 A 42 42 0 0 1 54 32" fill="none" stroke="#E8934A" stroke-width="6" stroke-linecap="round"/>
+    </svg>
+    <span class="font-sans text-xl font-bold tracking-tight text-amber">hearally</span>
+  </a>
+  <span class="ml-2 hidden rounded bg-ink-2 px-2 py-0.5 font-sans text-xs font-semibold text-muted-dark sm:inline">Public preview (beta)</span>
+  <div class="ml-auto flex items-center gap-3">
+    <span id="signed-in-as" class="hidden max-w-[26rem] truncate font-sans text-sm text-muted-dark sm:inline"></span>
+    <button id="sign-out" type="button" hidden class="rounded-md border border-line-dark px-3 py-1.5 font-sans text-sm font-semibold text-sand hover:bg-ink-2">Sign out</button>
+    <button id="menu-toggle" type="button" aria-expanded="false" aria-controls="dashboard-nav" class="rounded-md border border-line-dark px-3 py-1.5 font-sans text-sm font-semibold text-sand hover:bg-ink-2 md:hidden">Menu</button>
+  </div>
+</header>
+
+<div class="md:flex">
+  <nav id="dashboard-nav" aria-label="Dashboard" class="hidden border-b border-line bg-sand px-3 pb-4 md:block md:w-60 md:shrink-0 md:border-b-0 md:border-r md:pb-8 md:pt-6">
+        <p id="nav-signed-in-as" class="hidden break-all px-3 pt-4 font-sans text-sm text-muted md:hidden"></p>
+        
+        <ul class="space-y-0.5">
+          <li><a href="/dashboard/" class="block rounded-md border-l-[3px] border-transparent px-3 py-2 text-muted hover:bg-paper hover:text-ink">Today</a></li>
+        </ul>
+<p class="px-3 pt-6 pb-2 font-sans text-[11px] font-bold uppercase tracking-[0.12em] text-muted">What’s happening</p>
+        <ul class="space-y-0.5">
+          <li><a href="/dashboard/activity/" class="block rounded-md border-l-[3px] border-transparent px-3 py-2 text-muted hover:bg-paper hover:text-ink">Activity</a></li>
+          <li><a href="/dashboard/summaries/" class="block rounded-md border-l-[3px] border-transparent px-3 py-2 text-muted hover:bg-paper hover:text-ink">Summaries</a></li>
+        </ul>
+<p class="px-3 pt-6 pb-2 font-sans text-[11px] font-bold uppercase tracking-[0.12em] text-muted">Your setup</p>
+        <ul class="space-y-0.5">
+          <li><a href="/dashboard/people/" class="block rounded-md border-l-[3px] border-transparent px-3 py-2 text-muted hover:bg-paper hover:text-ink">People</a></li>
+          <li><a href="/dashboard/integrations/" class="block rounded-md border-l-[3px] border-teal bg-paper px-3 py-2 font-semibold text-ink" aria-current="page">Integrations</a></li>
+          <li><a href="/dashboard/preferences/" class="block rounded-md border-l-[3px] border-transparent px-3 py-2 text-muted hover:bg-paper hover:text-ink">Preferences</a></li>
+        </ul>
+<p class="px-3 pt-6 pb-2 font-sans text-[11px] font-bold uppercase tracking-[0.12em] text-muted">Account</p>
+        <ul class="space-y-0.5">
+          <li><a href="/dashboard/account/" class="block rounded-md border-l-[3px] border-transparent px-3 py-2 text-muted hover:bg-paper hover:text-ink">Account &amp; billing</a></li>
+        </ul>
+        <p class="mt-8 px-3 font-sans text-xs text-muted"><a href="/terms/" class="underline underline-offset-4">Terms</a> · <a href="/privacy/" class="underline underline-offset-4">Privacy</a> · <a href="mailto:info@email.famplified.com" class="underline underline-offset-4">Contact</a></p>
+      </nav>
+  <main id="main" tabindex="-1" class="dashboard-main min-w-0 flex-1 px-5 py-8 md:px-10 md:py-10">
+    <h1 class="text-[1.9rem] font-semibold leading-tight">Integrations</h1>
+    <p class="mt-2 max-w-[40rem] text-muted">How your recordings reach Hearally, and every recording received so far.</p>
+    <div id="content" class="mt-8" aria-live="polite">
+      <p class="text-muted">Loading…</p>
+    </div>
+    <noscript><p class="mt-8 max-w-[40rem]">The dashboard needs JavaScript to sign you in and load your information.</p></noscript>
+  </main>
+</div>
+
+<script src="/dashboard/config.js?v=9c1212e6cf"></script>
+<script src="/dashboard/app.js?v=a69a925a90"></script>
+</body>
+</html>

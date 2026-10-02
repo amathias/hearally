@@ -1,0 +1,16 @@
+{
+  "name": "@hearally/collector",
+  "version": "0.3.1",
+  "private": true,
+  "description": "Moves recordings from the account holder's device to Hearally, signed.",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "scripts": {
+    "check": "node --check src/activity-log.js && node --check src/api-client.js && node --check src/audio.js && node --check src/cli.js && node --check src/collect.js && node --check src/config.js && node --check src/folder-source.js && node --check src/places.js && node --check src/schedule.js && node --check src/setup.js",
+    "collect": "node src/cli.js",
+    "test": "node --test tests/*.test.js"
+  }
+}

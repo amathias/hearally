@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://api.hearally.com/contracts/transcript-v1.schema.json",
+  "title": "Hearally transcript, version 1",
+  "description": "Written by the Parakeet transcription job (transcriber/) to a signed S3 link under transcripts/<account>/<event_id>.json, read once by the backend (backend/src/hearally/transcription.py), then deleted. Raw text of what was said: never logged, never kept; the prefix also expires after a day. Times are seconds from the start of the recording. Confidence is Parakeet's word confidence, 0 to 1, or null when the decoder did not report it.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "id", "model", "duration_s", "confidence_available", "segments"],
+  "properties": {
+    "version": { "const": 1 },
+    "id": {
+      "description": "The recording's event id: the SHA-256 of its audio.",
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "model": { "type": "string", "examples": ["nvidia/parakeet-tdt-0.6b-v3"] },
+    "duration_s": { "type": "number", "minimum": 0 },
+    "confidence_available": {
+      "description": "True only when every word carries a confidence. When false, the backend treats unmeasured segments as confidence 0, so they can never cause a text on their own.",
+      "type": "boolean"
+    },
+    "segments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "start", "end", "text", "confidence", "min_confidence", "words"],
+        "properties": {
+          "id": { "type": "integer", "minimum": 0 },
+          "start": { "type": "number", "minimum": 0 },
+          "end": { "type": "number", "minimum": 0 },
+          "text": { "type": "string" },
+          "confidence": { "type": ["number", "null"], "minimum": 0, "maximum": 1, "description": "Mean word confidence in the segment." },
+          "min_confidence": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+          "words": {
+            "description": "Word timings, which redaction uses to bleep numbers out of the audio.",
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["w", "start", "end", "c"],
+              "properties": {
+                "w": { "type": "string" },
+                "start": { "type": "number", "minimum": 0 },
+                "end": { "type": "number", "minimum": 0 },
+                "c": { "type": ["number", "null"], "minimum": 0, "maximum": 1 }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

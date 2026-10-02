@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://api.hearally.com/contracts/ingest-v4.schema.json",
+  "title": "Hearally audio ingest event, version 4",
+  "description": "Sent by a paired collector to POST /v1/ingest after the audio has been put into S3 through a presigned POST from POST /v1/uploads. Audio never travels through the API. Both requests carry the computer's device token (Authorization: Bearer hd1.…; see collector-pairing.md). Version 4 removed account_id and object_key: the account is the one the computer was paired to, and the object is incoming/<account>/<event_id>, both derived by the server, so a collector cannot name another account or another account's audio. Enforced in backend/src/hearally/audio.py; this file documents it.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "event_id",
+    "content_type",
+    "byte_length",
+    "recorded_at",
+    "capture_mode",
+    "source"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 4
+    },
+    "event_id": {
+      "description": "SHA-256 of the audio bytes, lowercase hex. The recording's identity, and the Idempotency-Key header must equal it.",
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "content_type": {
+      "enum": [
+        "audio/mpeg",
+        "audio/mp4",
+        "audio/wav",
+        "audio/ogg",
+        "audio/opus",
+        "audio/flac"
+      ]
+    },
+    "byte_length": {
+      "description": "Must match the uploaded object, which the server checks with HeadObject before queueing.",
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 536870912
+    },
+    "recorded_at": {
+      "description": "ISO-8601 with a time zone. A naive time is refused, because quiet hours depend on it.",
+      "type": "string",
+      "format": "date-time"
+    },
+    "capture_mode": {
+      "enum": [
+        "phone_call",
+        "in_person",
+        "unknown"
+      ]
+    },
+    "source": {
+      "enum": [
+        "folder",
+        "plaud"
+      ]
+    },
+    "recorder_id": {
+      "description": "Optional. Which of the account holder's recorders made this recording; they may have several.",
+      "type": "string",
+      "pattern": "^[A-Za-z0-9._:-]{3,128}$"
+    },
+    "recorder_model": {
+      "description": "Optional. notepin and notepin_s cannot record phone calls, so capture_mode phone_call is refused for them.",
+      "enum": [
+        "note",
+        "note_pro",
+        "notepin",
+        "notepin_s",
+        "other"
+      ]
+    }
+  }
+}

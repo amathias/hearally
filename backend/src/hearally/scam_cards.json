@@ -1,0 +1,255 @@
+{
+  "version": 1,
+  "about": "Known scam scripts, for grounding the judgement step (docs/ARCHITECTURE.md section 5). Written in our own words from the linked public guidance; each card links its sources. The 'name' is what a heads-up says: 'This call sounds like the <name> described by <publisher>'.",
+  "cards": [
+    {
+      "id": "grandparent",
+      "name": "grandparent scam",
+      "description": "Someone calls posing as a grandchild or other relative, or as a lawyer or police officer acting for one, with a sudden emergency such as an arrest, a crash or a hospital stay, often while travelling. The voice may sound like the relative's. They need money at once and beg you not to tell the rest of the family.",
+      "tells": ["claims to be a grandchild or relative, or speaks for one", "arrest, accident, hospital or trouble abroad", "asks you to keep it secret from family", "insists it must happen today", "a second person takes over as lawyer, officer or bail agent"],
+      "asks_for": ["bail, legal fees or medical bills", "cash handed to a courier who comes to the door"],
+      "payment": ["cash_courier", "gift_cards", "wire_transfer", "cash_mail"],
+      "sources": [
+        {"publisher": "AARP", "title": "Criminals Pose as Grandchildren in Grandparent Scams", "url": "https://www.aarp.org/money/scams-fraud/info-2019/grandparent.html"},
+        {"publisher": "Federal Trade Commission", "title": "Scammers Use Fake Emergencies To Steal Your Money", "url": "https://consumer.ftc.gov/articles/scammers-use-fake-emergencies-steal-your-money"}
+      ]
+    },
+    {
+      "id": "government-impersonator",
+      "name": "government impersonation scam",
+      "description": "A caller claims to be from a government agency, such as the police, the FTC or a benefits office, and says there is a problem with your identity, your benefits or the law. They threaten arrest, fines or losing benefits unless you pay or confirm personal details right away.",
+      "tells": ["claims to be a government agency or officer", "threat of arrest, fines or losing benefits", "demands immediate action on this call", "tells you not to hang up or talk to anyone"],
+      "asks_for": ["payment of a fine or fee", "Social Security number, bank details or date of birth"],
+      "payment": ["gift_cards", "wire_transfer", "cryptocurrency", "bank_transfer", "personal_details"],
+      "sources": [
+        {"publisher": "Federal Trade Commission", "title": "How To Avoid a Government Impersonation Scam", "url": "https://consumer.ftc.gov/articles/how-avoid-government-impersonator-scam"}
+      ]
+    },
+    {
+      "id": "social-security",
+      "name": "Social Security impersonation scam",
+      "description": "A caller says they are from the Social Security Administration and that your number has been suspended, used in a crime, or that your benefits will stop. To fix it you must confirm your number or move money, sometimes with a fake badge number or a spoofed caller ID.",
+      "tells": ["says your Social Security number is suspended or involved in a crime", "threatens to stop benefits", "gives a badge or case number to sound official", "caller ID shows a government name"],
+      "asks_for": ["your Social Security number", "payment to 'protect' your benefits or account"],
+      "payment": ["personal_details", "gift_cards", "bank_transfer", "cryptocurrency", "cash_mail"],
+      "sources": [
+        {"publisher": "Social Security Administration Office of the Inspector General", "title": "Scam Awareness", "url": "https://oig.ssa.gov/scam-awareness/"},
+        {"publisher": "AARP", "title": "How to Spot New Social Security Scams", "url": "https://www.aarp.org/money/scams-fraud/info-2019/social-security.html"}
+      ]
+    },
+    {
+      "id": "irs-tax",
+      "name": "IRS tax scam",
+      "description": "A caller claims to be from the IRS and says you owe back taxes or penalties. They threaten arrest, deportation or losing your licence unless you pay immediately, usually by a method the IRS never uses.",
+      "tells": ["claims to be from the IRS", "says you owe back taxes today", "threatens arrest or deportation", "no letter was ever sent first"],
+      "asks_for": ["immediate payment of taxes or penalties"],
+      "payment": ["gift_cards", "wire_transfer", "cryptocurrency", "payment_app"],
+      "sources": [
+        {"publisher": "Internal Revenue Service", "title": "Recognize tax scams and fraud", "url": "https://www.irs.gov/newsroom/tax-scams-consumer-alerts"}
+      ]
+    },
+    {
+      "id": "jury-duty",
+      "name": "jury duty scam",
+      "description": "A caller says they are a court officer or deputy and that you missed jury duty, so there is a warrant for your arrest. The warrant can be cleared by paying a fine now, or by confirming personal details.",
+      "tells": ["says you missed jury duty", "an arrest warrant has been issued", "offers to clear it over the phone", "claims to be a court officer or sheriff's deputy"],
+      "asks_for": ["a fine to cancel the warrant", "Social Security number or date of birth"],
+      "payment": ["gift_cards", "payment_app", "personal_details", "cash_mail"],
+      "sources": [
+        {"publisher": "United States Courts", "title": "Juror Scams", "url": "https://www.uscourts.gov/services-forms/jury-service/juror-scams"}
+      ]
+    },
+    {
+      "id": "medicare",
+      "name": "Medicare benefits scam",
+      "description": "A caller claiming to be from Medicare, or working with it, offers a new Medicare card, free medical equipment, a free test or extra benefits, and needs your Medicare number to 'verify' you or process it.",
+      "tells": ["claims to be from Medicare", "offers a new card, free equipment, braces or genetic tests", "asks you to confirm your Medicare number", "benefits will be lost if you do not act"],
+      "asks_for": ["your Medicare number", "Social Security number or bank details"],
+      "payment": ["personal_details", "card_details"],
+      "sources": [
+        {"publisher": "AARP", "title": "How Beneficiaries Can Prevent Medicare Fraud", "url": "https://www.aarp.org/money/scams-fraud/info-2019/medicare.html"},
+        {"publisher": "Medicare.gov", "title": "Reporting Medicare fraud & abuse", "url": "https://www.medicare.gov/basics/reporting-medicare-fraud-and-abuse"}
+      ]
+    },
+    {
+      "id": "health-insurance",
+      "name": "health insurance scam",
+      "description": "A caller sells a health plan that sounds unusually cheap or complete, often claiming to be from a government marketplace. It turns out to be a limited discount plan or nothing at all, and they want payment or card details on the call.",
+      "tells": ["cold call selling a health plan", "price far below normal", "claims government or marketplace backing", "you must enrol today"],
+      "asks_for": ["card or bank details to enrol", "Social Security or Medicare number"],
+      "payment": ["card_details", "personal_details"],
+      "sources": [
+        {"publisher": "AARP", "title": "How Scammers Target People Looking for Health Insurance", "url": "https://www.aarp.org/money/scams-fraud/info-2019/health-insurance.html"}
+      ]
+    },
+    {
+      "id": "tech-support",
+      "name": "tech support scam",
+      "description": "A caller, or a pop-up message with a number to call, claims to be from Microsoft, Apple or your internet provider and says your computer has a virus or has been hacked. They want to take control of the computer and charge you to fix a problem that does not exist.",
+      "tells": ["claims to be Microsoft, Apple or your internet provider", "says your computer has a virus or was hacked", "asks you to install a program or give remote access", "a pop-up told you to call a number"],
+      "asks_for": ["remote access to your computer", "payment for repairs or a support plan"],
+      "payment": ["remote_access", "card_details", "gift_cards", "payment_app"],
+      "sources": [
+        {"publisher": "Federal Trade Commission", "title": "How To Spot, Avoid, and Report Tech Support Scams", "url": "https://consumer.ftc.gov/articles/how-spot-avoid-and-report-tech-support-scams"}
+      ]
+    },
+    {
+      "id": "phantom-hacker",
+      "name": "phantom hacker scam",
+      "description": "A scam in stages. A fake tech support caller says your computer or bank account has been hacked. Then a fake bank fraud officer says your savings are at risk, and sometimes a fake government official backs them up. You are told to move your money into a 'safe' account for protection, and told to keep it secret.",
+      "tells": ["one caller hands you on to a second or third", "says your bank or computer has been hacked", "tells you to move money to protect it", "says not to tell the bank staff or family why"],
+      "asks_for": ["transfer of savings to a 'safe' or 'government' account", "cash or gold collected by a courier", "remote access to your computer"],
+      "payment": ["bank_transfer", "wire_transfer", "cryptocurrency", "cash_courier", "remote_access"],
+      "sources": [
+        {"publisher": "FBI Internet Crime Complaint Center", "title": "\"Phantom Hacker\" Scams Target Senior Citizens", "url": "https://www.ic3.gov/PSA/2023/PSA230929"}
+      ]
+    },
+    {
+      "id": "bank-impostor",
+      "name": "bank impostor scam",
+      "description": "A caller says they are from your bank's fraud department and have spotted suspicious activity. To 'secure' the account they ask for a code sent to your phone, your card number or PIN, or ask you to move money to a new account.",
+      "tells": ["claims to be your bank's fraud team", "reports suspicious charges", "asks you to read back a code sent by text", "asks for your PIN, card number or login"],
+      "asks_for": ["a one-time code", "card number, PIN or online banking login", "moving money to a new account"],
+      "payment": ["one_time_code", "card_details", "account_access", "bank_transfer", "payment_app"],
+      "sources": [
+        {"publisher": "FBI Internet Crime Complaint Center", "title": "\"Phantom Hacker\" Scams Target Senior Citizens", "url": "https://www.ic3.gov/PSA/2023/PSA230929"},
+        {"publisher": "Federal Trade Commission", "title": "Phone Scams", "url": "https://consumer.ftc.gov/articles/phone-scams"}
+      ]
+    },
+    {
+      "id": "utility-shutoff",
+      "name": "utility shutoff scam",
+      "description": "A caller claiming to be from the electric, gas or water company says your bill is overdue and your service will be cut off within the hour unless you pay now.",
+      "tells": ["claims to be the utility company", "service cut off today, often within an hour", "demands payment on this call"],
+      "asks_for": ["immediate payment of an overdue bill"],
+      "payment": ["gift_cards", "payment_app", "card_details", "cryptocurrency"],
+      "sources": [
+        {"publisher": "AARP", "title": "How To Protect Yourself From Utility Scams", "url": "https://www.aarp.org/money/scams-fraud/info-2019/utility.html"}
+      ]
+    },
+    {
+      "id": "prize-lottery",
+      "name": "prize or lottery scam",
+      "description": "A caller says you have won a lottery, sweepstakes or prize, sometimes one you never entered. To collect it you must first pay taxes, fees or shipping, or give your bank details for the deposit.",
+      "tells": ["says you won a prize or lottery", "you must pay to collect", "a contest you do not remember entering"],
+      "asks_for": ["fees, taxes or shipping in advance", "bank details for the 'deposit'"],
+      "payment": ["gift_cards", "wire_transfer", "cash_mail", "card_details"],
+      "sources": [
+        {"publisher": "Federal Trade Commission", "title": "Fake Prize, Sweepstakes, and Lottery Scams", "url": "https://consumer.ftc.gov/articles/fake-prize-sweepstakes-and-lottery-scams"}
+      ]
+    },
+    {
+      "id": "gift-card-demand",
+      "name": "gift card payment scam",
+      "description": "Whatever the story, the caller wants payment in gift cards: you are told to buy them at a store and read out the numbers on the back. No real business or agency takes payment this way.",
+      "tells": ["asks you to buy gift cards", "asks for the numbers on the back of the card", "stays on the line while you shop"],
+      "asks_for": ["gift card numbers and PINs"],
+      "payment": ["gift_cards"],
+      "sources": [
+        {"publisher": "Federal Trade Commission", "title": "Avoiding and Reporting Gift Card Scams", "url": "https://consumer.ftc.gov/articles/avoiding-and-reporting-gift-card-scams"}
+      ]
+    },
+    {
+      "id": "romance",
+      "name": "romance scam",
+      "description": "Someone met online or by message builds a close, affectionate relationship over weeks, but can never meet in person: they say they work abroad, on an oil rig or a ship, in the military, or as a doctor overseas. Then they need money: for a ticket to visit, a medical bill, customs or release fees, or an investment they want to share.",
+      "tells": ["a sweetheart known only online or by phone", "works abroad, on an oil rig, at sea or in the military", "always a reason they cannot meet yet", "customs, release or travel fees stand in the way of visiting", "promises to pay you back"],
+      "asks_for": ["money for a ticket, medical bills, customs or release fees", "money for an investment"],
+      "payment": ["wire_transfer", "gift_cards", "cryptocurrency", "payment_app"],
+      "sources": [
+        {"publisher": "Federal Trade Commission", "title": "What To Know About Romance Scams", "url": "https://consumer.ftc.gov/articles/what-you-need-know-about-romance-scams"},
+        {"publisher": "AARP", "title": "How to Protect Yourself Against Online Romance Scams", "url": "https://www.aarp.org/money/scams-fraud/info-2019/romance.html"}
+      ]
+    },
+    {
+      "id": "investment-crypto",
+      "name": "investment or cryptocurrency scam",
+      "description": "A caller or new contact offers a can't-lose investment, often in cryptocurrency, gold or a 'special' fund, with guaranteed high returns. Early 'profits' appear on a website, but money put in cannot be taken out.",
+      "tells": ["guaranteed or very high returns", "pressure to invest quickly", "cryptocurrency, gold or an exclusive opportunity", "asks you to send money to a new platform or wallet"],
+      "asks_for": ["money to invest", "transfer to a crypto wallet or ATM"],
+      "payment": ["cryptocurrency", "wire_transfer", "bank_transfer"],
+      "sources": [
+        {"publisher": "Federal Trade Commission", "title": "What To Know About Cryptocurrency and Scams", "url": "https://consumer.ftc.gov/articles/what-know-about-cryptocurrency-and-scams"},
+        {"publisher": "AARP", "title": "How to Spot and Protect Yourself From Investment Fraud", "url": "https://www.aarp.org/money/scams-fraud/info-2019/investment.html"}
+      ]
+    },
+    {
+      "id": "refund-recovery",
+      "name": "refund or recovery scam",
+      "description": "Someone contacts a person who has already lost money to a scam, offering to recover it for a fee, sometimes posing as a lawyer or a government agency. Or a caller says you are owed a refund and 'accidentally' sends too much, asking for the difference back.",
+      "tells": ["offers to recover money you lost", "claims to be a lawyer or agency helping victims", "says you were overpaid a refund", "wants a fee first"],
+      "asks_for": ["an upfront recovery fee", "repayment of an 'overpaid' refund"],
+      "payment": ["gift_cards", "wire_transfer", "bank_transfer", "remote_access"],
+      "sources": [
+        {"publisher": "Federal Trade Commission", "title": "Refund and Recovery Scams", "url": "https://consumer.ftc.gov/articles/refund-recovery-scams"}
+      ]
+    },
+    {
+      "id": "charity",
+      "name": "charity scam",
+      "description": "A caller asks for a donation for a cause that sounds worthy, often after a disaster or for veterans, police or firefighters. They are vague about the charity, push for money right now, and want cash, gift cards or a wire.",
+      "tells": ["asks for a donation now", "vague about the charity's name or work", "thanks you for a donation you never made", "wants cash, gift cards or a wire"],
+      "asks_for": ["a donation today"],
+      "payment": ["gift_cards", "wire_transfer", "cash_courier", "card_details"],
+      "sources": [
+        {"publisher": "Federal Trade Commission", "title": "Before Giving to a Charity", "url": "https://consumer.ftc.gov/articles/giving-charity"},
+        {"publisher": "AARP", "title": "How to Tell If a Charity Is a Fraud", "url": "https://www.aarp.org/money/scams-fraud/info-2019/charity.html"}
+      ]
+    },
+    {
+      "id": "home-repair",
+      "name": "home repair scam",
+      "description": "A contractor turns up uninvited or calls, often after a storm, saying your roof, driveway or chimney needs urgent work. They offer a special price if you agree today and want a large deposit up front, then do poor work or none.",
+      "tells": ["unsolicited offer of repairs", "leftover materials or a special price today", "large deposit or full payment up front", "no written contract"],
+      "asks_for": ["a cash deposit before work starts"],
+      "payment": ["cash_courier", "check"],
+      "sources": [
+        {"publisher": "AARP", "title": "Here's How to Hire a Reliable Contractor", "url": "https://www.aarp.org/money/scams-fraud/info-2019/home-improvement.html"}
+      ]
+    },
+    {
+      "id": "debt-collector",
+      "name": "fake debt collector scam",
+      "description": "A caller says you owe a debt, sometimes one you do not recognise, and threatens arrest, a lawsuit or wage garnishment unless you pay immediately. They will not send details in writing.",
+      "tells": ["a debt you do not recognise", "threatens arrest or lawsuit", "refuses to send written details", "demands payment on this call"],
+      "asks_for": ["immediate payment of the debt", "bank account details"],
+      "payment": ["payment_app", "gift_cards", "card_details", "bank_transfer"],
+      "sources": [
+        {"publisher": "Federal Trade Commission", "title": "Debt Collection FAQs", "url": "https://consumer.ftc.gov/articles/debt-collection-faqs"}
+      ]
+    },
+    {
+      "id": "robocall-offer",
+      "name": "robocall sales scam",
+      "description": "A recorded message or pushy caller offers to lower your credit card interest rate, extend your car's warranty, or sell a medical alert device or other service, and asks you to press a key and give card or personal details.",
+      "tells": ["a recorded message", "offers to lower your interest rate or extend a car warranty", "press a number to speak to someone", "pressure to sign up now"],
+      "asks_for": ["card number or bank details", "an upfront fee"],
+      "payment": ["card_details", "personal_details"],
+      "sources": [
+        {"publisher": "Federal Trade Commission", "title": "Phone Scams", "url": "https://consumer.ftc.gov/articles/phone-scams"}
+      ]
+    },
+    {
+      "id": "fake-check-overpayment",
+      "name": "fake check scam",
+      "description": "Someone sends you a check, for a prize, a sale or a job, for more than they owe, and asks you to deposit it and send the difference back. The check later bounces and the money you sent is gone.",
+      "tells": ["a check for more than expected", "asks you to send part of it back", "urgency to send the money before the check clears"],
+      "asks_for": ["return of the 'extra' money"],
+      "payment": ["wire_transfer", "gift_cards", "payment_app", "check"],
+      "sources": [
+        {"publisher": "Federal Trade Commission", "title": "How To Spot, Avoid, and Report Fake Check Scams", "url": "https://consumer.ftc.gov/articles/how-spot-avoid-report-fake-check-scams"}
+      ]
+    },
+    {
+      "id": "payment-app-mistake",
+      "name": "payment app scam",
+      "description": "Someone says they sent you money by mistake on a payment app like Zelle, Venmo or Cash App and asks you to send it back, or a caller claiming to be from the app says your account needs 'verifying' with a payment.",
+      "tells": ["says they paid you by mistake", "asks you to send money back through the app", "claims to be app support", "a payment you did not expect"],
+      "asks_for": ["money sent back through the app", "your app login or a code"],
+      "payment": ["payment_app", "one_time_code", "account_access"],
+      "sources": [
+        {"publisher": "Federal Trade Commission", "title": "Mobile Payment Apps: How To Avoid a Scam When You Use One", "url": "https://consumer.ftc.gov/articles/mobile-payment-apps-how-avoid-scam-when-you-use-one"}
+      ]
+    }
+  ]
+}

@@ -1,0 +1,73 @@
+@import "tailwindcss";
+
+/* Brand tokens. These mirror brand/palette.css — that file stays canonical.
+   Amber is the ally, teal or sand is the account holder. See brand/README.md. */
+@theme {
+  --color-ink: #14243A;
+  --color-ink-2: #1B2F4A;
+  --color-teal: #1F6F6B;
+  --color-amber: #E8934A;
+  /* Amber for TEXT on sand or paper. Brand amber there is 2.1:1 and fails WCAG AA;
+     this is the lightest shade of the same hue that passes (4.5:1 sand, 5.0:1 paper).
+     Brand amber stays for fills, the mark, and text on ink (6.5:1). */
+  --color-amber-text: #996131;
+  --color-sand: #F6F1E8;
+  --color-paper: #FDFCFA;
+  --color-line: #E8E2D8;
+  --color-line-dark: #2A3A52;
+  --color-muted: #5A6672;
+  --color-muted-dark: #9FB0AE;
+  --color-flag: #B4462F;
+  --color-ok: #3E7A52;
+
+  --font-sans: Inter, "Segoe UI", system-ui, sans-serif;
+  --font-display: Fraunces, Georgia, serif;
+}
+
+/* Body text is 17px minimum here and 18px in the portal: some account holders
+   are older, and the design document treats that as a requirement. */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--color-sand);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-size: 17px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Headlines set in Fraunces, tightened. Body stays in Inter. */
+  h1, h2, h3 {
+    font-family: var(--font-display);
+    letter-spacing: -0.018em;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* The signed-in dashboard reads at 18px: some account holders are older, and
+   the design treats that as a requirement (docs/ARCHITECTURE.md section 12). */
+body.dashboard {
+  font-size: 18px;
+}
+
+/* A visible focus ring everywhere in the dashboard, for keyboard users. */
+.dashboard :focus-visible {
+  outline: 3px solid var(--color-teal);
+  outline-offset: 2px;
+  border-radius: 4px;
+}

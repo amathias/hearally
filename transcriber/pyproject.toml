@@ -1,0 +1,18 @@
+[project]
+name = "hearally-transcriber"
+version = "0.1.0"
+description = "Parakeet transcription job for Nebius Serverless AI"
+requires-python = ">=3.12"
+license = "MIT"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["src"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "S"]
+ignore = ["S603", "S607"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S"]

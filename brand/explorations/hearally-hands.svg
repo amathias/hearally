@@ -1,0 +1,136 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 800" width="960" height="800" font-family="Inter, 'Segoe UI', system-ui, sans-serif">
+  <defs>
+    <style>
+      .card { fill: #14243A; }
+      .amber { fill: #E8934A; }
+      .muted { fill: #9FB0AE; font-size: 13px; }
+      .wm { fill: #F6F1E8; font-size: 26px; font-weight: 600; }
+      .label { fill: #5A6672; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; }
+      .note { fill: #5A6672; font-size: 12px; }
+      .s-sand { fill: none; stroke: #F6F1E8; stroke-linecap: round; }
+      .s-amber { fill: none; stroke: #E8934A; stroke-linecap: round; }
+      .f-sand { fill: #F6F1E8; }
+      .f-amber { fill: #E8934A; }
+    </style>
+
+    <!-- A: two interlocking links = a clasp, abstracted -->
+    <g id="clasp">
+      <path d="M -2 -15 A 15 15 0 1 0 -2 15" fill="none" stroke="#F6F1E8" stroke-width="7" stroke-linecap="round"/>
+      <path d="M 2 -15 A 15 15 0 1 1 2 15" fill="none" stroke="#E8934A" stroke-width="7" stroke-linecap="round"/>
+    </g>
+
+    <!-- B: cupped hand holding a small figure -->
+    <g id="cup">
+      <path d="M -20 -2 A 20 20 0 0 0 20 -2" fill="none" stroke="#F6F1E8" stroke-width="7" stroke-linecap="round"/>
+      <path d="M -20 -2 v -7" stroke="#F6F1E8" stroke-width="7" stroke-linecap="round"/>
+      <path d="M 20 -2 v -7" stroke="#F6F1E8" stroke-width="7" stroke-linecap="round"/>
+      <circle cx="0" cy="-15" r="7" fill="#E8934A"/>
+    </g>
+
+    <!-- C: two clasped hands, silhouette -->
+    <g id="hands">
+      <path d="M -22 6 h 14 a 5 5 0 0 1 5 5 v 6 a 5 5 0 0 1 -5 5 h -14 a 5 5 0 0 1 -5 -5 v -6 a 5 5 0 0 1 5 -5 z" fill="#F6F1E8"/>
+      <path d="M -16 -8 h 18 a 5 5 0 0 1 5 5 v 7 a 5 5 0 0 1 -5 5 h -18 a 5 5 0 0 1 -5 -5 v -7 a 5 5 0 0 1 5 -5 z" fill="#F6F1E8"/>
+      <path d="M 22 -6 h -14 a 5 5 0 0 0 -5 5 v 6 a 5 5 0 0 0 5 5 h 14 a 5 5 0 0 0 5 -5 v -6 a 5 5 0 0 0 -5 -5 z" fill="#E8934A"/>
+      <path d="M 16 8 h -18 a 5 5 0 0 0 -5 5 v 6 a 5 5 0 0 0 5 5 h 18 a 5 5 0 0 0 5 -5 v -6 a 5 5 0 0 0 -5 -5 z" fill="#E8934A"/>
+    </g>
+
+    <!-- D: two hooks forming a clasp -->
+    <g id="hooks">
+      <path d="M -18 -12 a 12 12 0 0 0 0 24 h 10" fill="none" stroke="#F6F1E8" stroke-width="7" stroke-linecap="round"/>
+      <path d="M 18 12 a 12 12 0 0 0 0 -24 h -10" fill="none" stroke="#E8934A" stroke-width="7" stroke-linecap="round"/>
+    </g>
+
+    <!-- symmetrical sound arcs -->
+    <g id="waves">
+      <path d="M -40 -20 A 26 26 0 0 0 -40 20" class="s-sand" stroke-width="4.5" opacity=".85"/>
+      <path d="M -54 -30 A 38 38 0 0 0 -54 30" class="s-sand" stroke-width="4.5" opacity=".45"/>
+      <path d="M 40 -20 A 26 26 0 0 1 40 20" class="s-sand" stroke-width="4.5" opacity=".85"/>
+      <path d="M 54 -30 A 38 38 0 0 1 54 30" class="s-sand" stroke-width="4.5" opacity=".45"/>
+    </g>
+  </defs>
+
+  <rect width="960" height="800" fill="#FFFFFF"/>
+  <text x="48" y="44" fill="#14243A" font-size="20" font-weight="600">Hearally — hands, held, with sound around</text>
+  <text x="48" y="66" class="label">keeps the people on your side close.</text>
+
+  <!-- A -->
+  <text x="48" y="104" class="label">A · a clasp, abstracted</text>
+  <g transform="translate(48,114)">
+    <rect width="420" height="130" rx="16" class="card"/>
+    <g transform="translate(96,66)"><use href="#waves"/><use href="#clasp"/></g>
+    <text x="186" y="62" class="wm">hear<tspan class="amber" font-weight="700">Ally</tspan></text>
+    <text x="186" y="86" class="muted">Keeps the people on your side close.</text>
+  </g>
+  <text x="48" y="262" class="note">Two links holding. Survives any size; reads as connection, not hands.</text>
+
+  <!-- B -->
+  <text x="504" y="104" class="label">B · cupped, holding</text>
+  <g transform="translate(504,114)">
+    <rect width="408" height="130" rx="16" class="card"/>
+    <g transform="translate(96,70)"><use href="#waves"/><use href="#cup"/></g>
+    <text x="186" y="62" class="wm">hear<tspan class="amber" font-weight="700">Ally</tspan></text>
+    <text x="186" y="86" class="muted">Keeps the people on your side close.</text>
+  </g>
+  <text x="504" y="262" class="note">A hand cupping a person. Tender, and unmistakably care.</text>
+
+  <!-- C -->
+  <text x="48" y="302" class="label">C · two hands clasped</text>
+  <g transform="translate(48,312)">
+    <rect width="420" height="130" rx="16" class="card"/>
+    <g transform="translate(96,66)"><use href="#waves"/><use href="#hands"/></g>
+    <text x="186" y="62" class="wm">hear<tspan class="amber" font-weight="700">Ally</tspan></text>
+    <text x="186" y="86" class="muted">Keeps the people on your side close.</text>
+  </g>
+  <text x="48" y="460" class="note">Most literal. Two colours make the two people obvious.</text>
+
+  <!-- D -->
+  <text x="504" y="302" class="label">D · two hooks, linked</text>
+  <g transform="translate(504,312)">
+    <rect width="408" height="130" rx="16" class="card"/>
+    <g transform="translate(96,66)"><use href="#waves"/><use href="#hooks"/></g>
+    <text x="186" y="62" class="wm">hear<tspan class="amber" font-weight="700">Ally</tspan></text>
+    <text x="186" y="86" class="muted">Keeps the people on your side close.</text>
+  </g>
+  <text x="504" y="460" class="note">Simplest of all. Almost a chain link, almost two arms.</text>
+
+  <!-- favicon row -->
+  <text x="48" y="512" class="label">at 44px and 28px</text>
+  <g transform="translate(48,524)">
+    <rect width="864" height="150" rx="16" fill="#FDFCFA" stroke="#E8E2D8"/>
+    <g transform="translate(90,60)">
+      <rect x="-24" y="-24" width="48" height="48" rx="11" class="card"/><g transform="scale(.5)"><use href="#clasp"/></g>
+      <rect x="44" y="-14" width="28" height="28" rx="7" class="card"/><g transform="translate(58,0) scale(.3)"><use href="#clasp"/></g>
+      <text x="16" y="48" class="note" text-anchor="middle">A</text>
+    </g>
+    <g transform="translate(290,60)">
+      <rect x="-24" y="-24" width="48" height="48" rx="11" class="card"/><g transform="translate(0,6) scale(.5)"><use href="#cup"/></g>
+      <rect x="44" y="-14" width="28" height="28" rx="7" class="card"/><g transform="translate(58,4) scale(.3)"><use href="#cup"/></g>
+      <text x="16" y="48" class="note" text-anchor="middle">B</text>
+    </g>
+    <g transform="translate(490,60)">
+      <rect x="-24" y="-24" width="48" height="48" rx="11" class="card"/><g transform="scale(.5)"><use href="#hands"/></g>
+      <rect x="44" y="-14" width="28" height="28" rx="7" class="card"/><g transform="translate(58,0) scale(.3)"><use href="#hands"/></g>
+      <text x="16" y="48" class="note" text-anchor="middle">C</text>
+    </g>
+    <g transform="translate(690,60)">
+      <rect x="-24" y="-24" width="48" height="48" rx="11" class="card"/><g transform="scale(.5)"><use href="#hooks"/></g>
+      <rect x="44" y="-14" width="28" height="28" rx="7" class="card"/><g transform="translate(58,0) scale(.3)"><use href="#hooks"/></g>
+      <text x="16" y="48" class="note" text-anchor="middle">D</text>
+    </g>
+  </g>
+
+  <!-- light version of the leader -->
+  <text x="48" y="708" class="label">A, on the light background</text>
+  <g transform="translate(48,718)">
+    <rect width="420" height="62" rx="14" fill="#F6F1E8" stroke="#E8E2D8"/>
+    <g transform="translate(70,31) scale(.62)">
+      <path d="M -40 -20 A 26 26 0 0 0 -40 20" fill="none" stroke="#1F6F6B" stroke-width="4.5" opacity=".7"/>
+      <path d="M 40 -20 A 26 26 0 0 1 40 20" fill="none" stroke="#1F6F6B" stroke-width="4.5" opacity=".7"/>
+      <path d="M -2 -15 A 15 15 0 1 0 -2 15" fill="none" stroke="#1F6F6B" stroke-width="7" stroke-linecap="round"/>
+      <path d="M 2 -15 A 15 15 0 1 1 2 15" fill="none" stroke="#E8934A" stroke-width="7" stroke-linecap="round"/>
+    </g>
+    <text x="124" y="30" font-size="22" font-weight="600" fill="#14243A">hear<tspan fill="#1F6F6B" font-weight="700">Ally</tspan></text>
+    <text x="124" y="48" font-size="12" fill="#5A6672">Keeps the people on your side close.</text>
+  </g>
+</svg>

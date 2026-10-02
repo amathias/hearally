@@ -1,0 +1,1 @@
+"""External delivery provider adapters."""

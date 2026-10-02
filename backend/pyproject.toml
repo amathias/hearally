@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hearally-backend"
+version = "0.1.0"
+description = "Hearally serverless backend"
+requires-python = ">=3.12"
+dependencies = ["boto3>=1.34,<2"]
+
+[project.optional-dependencies]
+dev = ["ruff==0.16.8", "mypy==2.3.1", "coverage==7.16.1"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["src"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.mypy]
+python_version = "3.12"
+mypy_path = "src"
+ignore_missing_imports = true

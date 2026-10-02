@@ -1,0 +1,74 @@
+{
+  "about": "Scripted calls for calibrating scam retrieval and testing the judgement. Invented; no real person or recording. 'expect' is the card a heads-up should name, or null when none should be named. The ordinary calls are chosen to be close to scams on the surface: a real grandson, a real bank, real Medicare mail.",
+  "calls": [
+    {"name": "grandson in jail", "expect": "grandparent", "segments": [
+      {"speaker": "other", "text": "Grandpa? It's me, it's Tyler. I'm in trouble, I got arrested after a car accident and they won't let me go."},
+      {"speaker": "account_holder", "text": "Tyler? You sound different."},
+      {"speaker": "other", "text": "My nose is broken from the airbag. Please don't tell Mom and Dad, they'll kill me. The lawyer says bail is six thousand and it has to be today."},
+      {"speaker": "other", "text": "A man from the court will come to your house to pick up the cash. Just put it in an envelope."}]},
+    {"name": "social security suspended", "expect": "social-security", "segments": [
+      {"speaker": "other", "text": "This is officer Daniels with the Social Security Administration. Your social security number has been suspended because it was found at a crime scene in Texas."},
+      {"speaker": "other", "text": "To avoid a warrant, you need to confirm your number and we will move your savings to a protected government account."}]},
+    {"name": "irs back taxes", "expect": "irs-tax", "segments": [
+      {"speaker": "other", "text": "This is the Internal Revenue Service. Our records show you owe four thousand in back taxes and penalties."},
+      {"speaker": "other", "text": "If you do not pay today, a local officer will arrest you. You can settle this now with Apple gift cards from any store."}]},
+    {"name": "microsoft virus", "expect": "tech-support", "segments": [
+      {"speaker": "other", "text": "Hello, I am calling from Microsoft technical department. Your computer is sending us error messages, it has a dangerous virus."},
+      {"speaker": "other", "text": "Please go to your computer and download the program I tell you so I can connect and fix it for you. There is a small fee of two hundred ninety nine dollars."}]},
+    {"name": "bank fraud safe account", "expect": "bank-impostor", "segments": [
+      {"speaker": "other", "text": "This is the fraud department at your bank. We've seen two suspicious charges on your debit card in Florida."},
+      {"speaker": "other", "text": "To stop them I'm sending you a code by text. Can you read me the six digits so I can verify you're the account holder?"}]},
+    {"name": "phantom hacker", "expect": "phantom-hacker", "segments": [
+      {"speaker": "other", "text": "Ma'am, I'm with your bank's security team. The technician who was just on your computer confirmed a foreign hacker has access to your savings."},
+      {"speaker": "other", "text": "To protect your money you have to move it today into a safe account the Federal Reserve has set up for you. Don't tell the teller why, the hackers may have someone inside the branch."}]},
+    {"name": "medicare back brace", "expect": "medicare", "segments": [
+      {"speaker": "other", "text": "Hi, I'm calling from Medicare benefits. You qualify for a free back brace and knee brace at no cost to you."},
+      {"speaker": "other", "text": "I just need to verify your Medicare number and your date of birth so we can ship them out."}]},
+    {"name": "electric shutoff", "expect": "utility-shutoff", "segments": [
+      {"speaker": "other", "text": "This is the electric company. Your account is past due and a crew is scheduled to disconnect your power within the next forty five minutes."},
+      {"speaker": "other", "text": "To stop the disconnection you'll need to pay three hundred and eighty dollars right now through Cash App."}]},
+    {"name": "lottery winner", "expect": "prize-lottery", "segments": [
+      {"speaker": "other", "text": "Congratulations! You've won the second prize in the Publishers sweepstakes, two and a half million dollars and a new car."},
+      {"speaker": "other", "text": "Before we can release your winnings you need to cover the tax and delivery fee of nine hundred dollars. Can you send that by wire today?"}]},
+    {"name": "jury warrant", "expect": "jury-duty", "segments": [
+      {"speaker": "other", "text": "This is Lieutenant Price with the county sheriff's office. You failed to appear for jury duty last month and a bench warrant has been issued for your arrest."},
+      {"speaker": "other", "text": "You can resolve this today by paying the fine of fifteen hundred dollars. Stay on the line while you get to a store."}]},
+    {"name": "roofer at the door", "expect": "home-repair", "segments": [
+      {"speaker": "other", "text": "Morning! We were doing a job down the street and I noticed your roof has storm damage, a lot of loose shingles up there."},
+      {"speaker": "other", "text": "I've got material left over so I can do it today for half price, but I need a cash deposit of two thousand to get started."}]},
+    {"name": "online sweetheart", "expect": "romance", "segments": [
+      {"speaker": "other", "text": "Darling, I miss you so much. I can finally come and see you, I just have one problem at customs here on the oil platform."},
+      {"speaker": "other", "text": "They are holding my luggage and my money until I pay a release fee. Could you send me two thousand through Western Union? I will pay you back when I land."}]},
+
+    {"name": "doctor rescheduling", "expect": null, "segments": [
+      {"speaker": "other", "text": "Hi, this is Dr Patel's office calling to let you know your appointment on Thursday has moved to next Monday at ten thirty."},
+      {"speaker": "other", "text": "Please call us back if that time doesn't work for you."}]},
+    {"name": "daughter about the bank", "expect": null, "segments": [
+      {"speaker": "other", "text": "Hi Dad, it's Sarah. The branch called me to say your new debit card is ready to pick up."},
+      {"speaker": "other", "text": "I'll take you on Saturday morning and we can get lunch after."}]},
+    {"name": "real grandson wants a ride", "expect": null, "segments": [
+      {"speaker": "other", "text": "Hey Grandpa, it's Tyler. My car's in the shop again, any chance you could pick me up from practice on Friday?"},
+      {"speaker": "other", "text": "Mom said it's fine. I'll pay you back for the gas, I promise."}]},
+    {"name": "pharmacy refill", "expect": null, "segments": [
+      {"speaker": "other", "text": "This is Walgreens pharmacy with a reminder that your prescription is ready for pickup."},
+      {"speaker": "other", "text": "Your insurance covered it, so there's no copay this time."}]},
+    {"name": "son on medicare enrolment", "expect": null, "segments": [
+      {"speaker": "other", "text": "Mom, open enrolment for Medicare starts next week. Don't sign anything anyone sends you."},
+      {"speaker": "other", "text": "I'll come over Sunday and we'll look at the plans together on the Medicare website."}]},
+    {"name": "friend won at bingo", "expect": null, "segments": [
+      {"speaker": "other", "text": "You'll never guess, I won the big prize at church bingo last night, two hundred dollars!"},
+      {"speaker": "other", "text": "I'm taking us both out for pie on Tuesday to celebrate."}]},
+    {"name": "real utility notice", "expect": null, "segments": [
+      {"speaker": "other", "text": "Hi, this is a courtesy call from City Water. We'll be doing maintenance on your street Wednesday and water will be off from nine to noon."},
+      {"speaker": "other", "text": "No action is needed on your part."}]},
+    {"name": "church fundraiser", "expect": null, "segments": [
+      {"speaker": "other", "text": "Hi Margaret, it's Linda from St Mark's. Just reminding you the bake sale for the roof fund is on Saturday."},
+      {"speaker": "other", "text": "If you're still making your lemon bars, bring them by the hall any time after eight."}]},
+    {"name": "grandson's news", "expect": null, "segments": [
+      {"speaker": "other", "text": "Grandma, guess what, I passed my driving test! First try."},
+      {"speaker": "other", "text": "Mom's letting me borrow the car so I can come visit you this weekend."}]},
+    {"name": "plumber confirming", "expect": null, "segments": [
+      {"speaker": "other", "text": "Hi, it's Mike from Reliable Plumbing, confirming we'll be out tomorrow between one and three to look at the water heater, like you booked last week."},
+      {"speaker": "other", "text": "We'll give you a written quote before we do any work."}]}
+  ]
+}

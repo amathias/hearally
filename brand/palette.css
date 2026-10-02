@@ -1,0 +1,21 @@
+/* Hearally design tokens — brand/palette.css */
+:root {
+  --ha-ink:    #14243A;  /* text, dark surfaces, the card */
+  --ha-teal:   #1F6F6B;  /* primary action; the account holder on light backgrounds */
+  --ha-amber:  #E8934A;  /* THE ALLY. Fills, the mark, and text on ink */
+  --ha-amber-text: #996131;  /* THE ALLY as text on sand or paper: brand amber fails AA there */
+  --ha-sand:   #F6F1E8;  /* warm background; the account holder on dark backgrounds */
+  --ha-paper:  #FDFCFA;  /* cards */
+  --ha-line:   #E8E2D8;  /* borders */
+  --ha-muted:  #5A6672;  /* secondary text on light */
+  --ha-muted-on-dark: #9FB0AE;
+  --ha-flag:   #B4462F;  /* needs attention — muted brick, NEVER siren red */
+  --ha-ok:     #3E7A52;  /* acknowledged, claimed */
+
+  --ha-radius-card: 18px;
+  --ha-radius-control: 10px;
+  --ha-font: Inter, "Segoe UI", system-ui, sans-serif;
+  --ha-font-display: Fraunces, Georgia, serif; /* marketing headlines only */
+  --ha-body-size: 16px;      /* 18px inside the portal */
+  --ha-tagline: "Keeps the people on your side close.";
+}

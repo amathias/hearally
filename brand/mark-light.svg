@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-60 -50 140 100" width="280" height="200" role="img" aria-label="Hearally mark">
+  <title>Hearally — two people, two sound waves (light background)</title>
+  <circle cx="-20" cy="-13" r="11" fill="#1F6F6B"/>
+  <path d="M -38 17 A 18 18 0 0 1 -2 17" fill="none" stroke="#1F6F6B" stroke-width="8.5" stroke-linecap="round"/>
+  <circle cx="8" cy="-8" r="9" fill="#E8934A"/>
+  <path d="M -6 19 A 14 14 0 0 1 22 19" fill="none" stroke="#E8934A" stroke-width="7.5" stroke-linecap="round"/>
+  <path d="M 38 -20 A 26 26 0 0 1 38 20" fill="none" stroke="#1F6F6B" stroke-width="6" stroke-linecap="round"/>
+  <path d="M 54 -32 A 42 42 0 0 1 54 32" fill="none" stroke="#E8934A" stroke-width="6" stroke-linecap="round"/>
+</svg>

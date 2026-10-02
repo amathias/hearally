@@ -1,0 +1,19 @@
+{
+  "name": "hearally-web",
+  "version": "1.0.0",
+  "description": "Hearally marketing site",
+  "scripts": {
+    "build": "node scripts/build-dashboard.mjs && node scripts/build-collector.mjs && tailwindcss -i src/input.css -o public/styles.css --minify && node scripts/stamp-assets.mjs",
+    "watch": "tailwindcss -i src/input.css -o public/styles.css --watch"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "type": "commonjs",
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.3.3",
+    "esbuild": "0.28.2",
+    "tailwindcss": "^4.3.3"
+  },
+  "private": true
+}

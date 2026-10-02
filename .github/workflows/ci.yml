@@ -1,0 +1,111 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+        working-directory: web
+      - name: Build stylesheet
+        run: npm run build
+        working-directory: web
+      - name: Fail if the committed build output is stale
+        run: git diff --exit-code -- public/
+        working-directory: web
+
+  collector:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+      - name: Syntax check
+        run: npm run check
+        working-directory: collector
+      - name: Tests
+        run: npm test
+        working-directory: collector
+
+  python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: "3.12"
+      - name: Install tooling
+        run: pip install ruff==0.16.8 mypy==2.3.1 coverage==7.16.1
+      - name: Lint
+        run: ruff check backend
+      - name: Format check
+        run: ruff format --check backend
+      - name: Type check
+        run: mypy --config-file backend/pyproject.toml backend/src
+      - name: Tests with coverage
+        env:
+          PYTHONPATH: backend/src
+        run: |
+          coverage run --source=backend/src/hearally --branch -m unittest discover -s backend/tests -v
+          coverage report --skip-empty --fail-under=75
+
+  transcriber:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: "3.12"
+      - name: Install tooling
+        run: pip install ruff==0.16.8
+      - name: Lint
+        run: ruff check transcriber
+      - name: Format check
+        run: ruff format --check transcriber
+      # The job's pure logic only: chunking, joining, manifest safety. NeMo and
+      # the GPU are exercised by running a job on Nebius.
+      - name: Tests
+        env:
+          PYTHONPATH: transcriber/src
+        run: python -m unittest discover -s transcriber/tests -v
+
+  terraform:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3
+        with:
+          terraform_version: 1.15.6
+      - run: terraform -chdir=infra/production fmt -check -recursive
+      - run: terraform -chdir=infra/production init -backend=false
+      - run: terraform -chdir=infra/production validate
+      - name: Security scan
+        uses: bridgecrewio/checkov-action@444c9db6fa75e2d9c19ebf1fde7322089be9009e # v12
+        with:
+          directory: infra
+          framework: terraform
+          quiet: true
+
+  secrets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7 # v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

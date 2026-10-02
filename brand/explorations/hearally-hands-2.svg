@@ -1,0 +1,149 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 820" width="960" height="820" font-family="Inter, 'Segoe UI', system-ui, sans-serif">
+  <defs>
+    <style>
+      .card { fill: #14243A; }
+      .amber { fill: #E8934A; }
+      .muted { fill: #9FB0AE; font-size: 13px; }
+      .wm { fill: #F6F1E8; font-size: 26px; font-weight: 600; }
+      .label { fill: #5A6672; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; }
+      .note { fill: #5A6672; font-size: 12px; }
+      .f-sand { fill: #F6F1E8; }
+      .f-amber { fill: #E8934A; }
+      .s-sand { fill: none; stroke: #F6F1E8; stroke-linecap: round; }
+      .s-amber { fill: none; stroke: #E8934A; stroke-linecap: round; }
+    </style>
+
+    <!-- A · one hand cradling a person, arcs overhead (United Way posture) -->
+    <g id="cradle">
+      <path d="M -46 -30 A 46 46 0 0 1 46 -30" class="s-sand" stroke-width="5" opacity=".45"/>
+      <path d="M -32 -26 A 32 32 0 0 1 32 -26" class="s-amber" stroke-width="5.5"/>
+      <circle cx="0" cy="-14" r="8" class="f-amber"/>
+      <path d="M -11 2 A 11 11 0 0 1 11 2" class="s-amber" stroke-width="6.5"/>
+      <path d="M -26 8 q 0 22 26 22 q 26 0 26 -22" fill="none" stroke="#F6F1E8" stroke-width="7" stroke-linecap="round"/>
+      <path d="M -26 8 v -9" class="s-sand" stroke-width="7"/>
+      <path d="M -13 3 v -6" class="s-sand" stroke-width="6"/>
+      <path d="M 0 2 v -5" class="s-sand" stroke-width="6"/>
+      <path d="M 13 3 v -6" class="s-sand" stroke-width="6"/>
+      <path d="M 26 8 v -9" class="s-sand" stroke-width="7"/>
+    </g>
+
+    <!-- B · two hands meeting to make the cradle -->
+    <g id="twohands">
+      <path d="M -44 -28 A 44 44 0 0 1 44 -28" class="s-sand" stroke-width="5" opacity=".45"/>
+      <path d="M -30 -24 A 30 30 0 0 1 30 -24" class="s-amber" stroke-width="5.5"/>
+      <circle cx="0" cy="-12" r="7.5" class="f-amber"/>
+      <path d="M -28 6 q 4 22 28 22" fill="none" stroke="#F6F1E8" stroke-width="7" stroke-linecap="round"/>
+      <path d="M 28 6 q -4 22 -28 22" fill="none" stroke="#F6F1E8" stroke-width="7" stroke-linecap="round"/>
+      <path d="M -28 6 v -8" class="s-sand" stroke-width="6.5"/>
+      <path d="M -17 2 v -6" class="s-sand" stroke-width="5.5"/>
+      <path d="M 17 2 v -6" class="s-sand" stroke-width="5.5"/>
+      <path d="M 28 6 v -8" class="s-sand" stroke-width="6.5"/>
+    </g>
+
+    <!-- C · two hands clasped across, arcs overhead -->
+    <g id="clasped">
+      <path d="M -44 -22 A 44 44 0 0 1 44 -22" class="s-sand" stroke-width="5" opacity=".45"/>
+      <path d="M -30 -18 A 30 30 0 0 1 30 -18" class="s-amber" stroke-width="5.5"/>
+      <path d="M -34 12 h 30 a 9 9 0 0 1 0 18 h -30 a 9 9 0 0 1 0 -18 z" class="f-sand"/>
+      <path d="M 34 4 h -30 a 9 9 0 0 0 0 18 h 30 a 9 9 0 0 0 0 -18 z" class="f-amber"/>
+    </g>
+
+    <!-- D · simplest: two curved arms making a bowl, person inside -->
+    <g id="bowl">
+      <path d="M -42 -26 A 42 42 0 0 1 42 -26" class="s-sand" stroke-width="5" opacity=".45"/>
+      <path d="M -28 -22 A 28 28 0 0 1 28 -22" class="s-amber" stroke-width="5.5"/>
+      <circle cx="0" cy="-10" r="7" class="f-amber"/>
+      <path d="M -30 0 A 30 30 0 0 0 30 0" fill="none" stroke="#F6F1E8" stroke-width="8" stroke-linecap="round"/>
+    </g>
+  </defs>
+
+  <rect width="960" height="820" fill="#FFFFFF"/>
+  <text x="48" y="44" fill="#14243A" font-size="20" font-weight="600">Hearally — hands, United Way posture</text>
+  <text x="48" y="66" class="label">a hand holding a person · sound arcs where the rainbow goes</text>
+
+  <!-- A -->
+  <text x="48" y="106" class="label">A · one hand, cradling</text>
+  <g transform="translate(48,116)">
+    <rect width="420" height="150" rx="16" class="card"/>
+    <g transform="translate(94,74)"><use href="#cradle"/></g>
+    <text x="186" y="70" class="wm">hear<tspan class="amber" font-weight="700">Ally</tspan></text>
+    <text x="186" y="94" class="muted">Keeps the people on your side close.</text>
+  </g>
+  <text x="48" y="284" class="note">Palm with four fingers, a figure held above it, arcs overhead.</text>
+
+  <!-- B -->
+  <text x="504" y="106" class="label">B · two hands, meeting</text>
+  <g transform="translate(504,116)">
+    <rect width="408" height="150" rx="16" class="card"/>
+    <g transform="translate(94,74)"><use href="#twohands"/></g>
+    <text x="186" y="70" class="wm">hear<tspan class="amber" font-weight="700">Ally</tspan></text>
+    <text x="186" y="94" class="muted">Keeps the people on your side close.</text>
+  </g>
+  <text x="504" y="284" class="note">Two hands forming one cradle: the family, together.</text>
+
+  <!-- C -->
+  <text x="48" y="324" class="label">C · clasped across</text>
+  <g transform="translate(48,334)">
+    <rect width="420" height="150" rx="16" class="card"/>
+    <g transform="translate(94,78)"><use href="#clasped"/></g>
+    <text x="186" y="70" class="wm">hear<tspan class="amber" font-weight="700">Ally</tspan></text>
+    <text x="186" y="94" class="muted">Keeps the people on your side close.</text>
+  </g>
+  <text x="48" y="502" class="note">Two hands gripping, arcs above. Equal partners, nobody held.</text>
+
+  <!-- D -->
+  <text x="504" y="324" class="label">D · simplest bowl</text>
+  <g transform="translate(504,334)">
+    <rect width="408" height="150" rx="16" class="card"/>
+    <g transform="translate(94,76)"><use href="#bowl"/></g>
+    <text x="186" y="70" class="wm">hear<tspan class="amber" font-weight="700">Ally</tspan></text>
+    <text x="186" y="94" class="muted">Keeps the people on your side close.</text>
+  </g>
+  <text x="504" y="502" class="note">No fingers at all: two arms, a person, sound above.</text>
+
+  <!-- favicon row -->
+  <text x="48" y="552" class="label">at 48px and 28px</text>
+  <g transform="translate(48,564)">
+    <rect width="864" height="150" rx="16" fill="#FDFCFA" stroke="#E8E2D8"/>
+    <g transform="translate(96,64)">
+      <rect x="-26" y="-26" width="52" height="52" rx="12" class="card"/><g transform="translate(0,4) scale(.42)"><use href="#cradle"/></g>
+      <rect x="46" y="-14" width="28" height="28" rx="7" class="card"/><g transform="translate(60,2) scale(.23)"><use href="#cradle"/></g>
+      <text x="18" y="50" class="note" text-anchor="middle">A</text>
+    </g>
+    <g transform="translate(296,64)">
+      <rect x="-26" y="-26" width="52" height="52" rx="12" class="card"/><g transform="translate(0,2) scale(.42)"><use href="#twohands"/></g>
+      <rect x="46" y="-14" width="28" height="28" rx="7" class="card"/><g transform="translate(60,1) scale(.23)"><use href="#twohands"/></g>
+      <text x="18" y="50" class="note" text-anchor="middle">B</text>
+    </g>
+    <g transform="translate(496,64)">
+      <rect x="-26" y="-26" width="52" height="52" rx="12" class="card"/><g transform="translate(0,0) scale(.42)"><use href="#clasped"/></g>
+      <rect x="46" y="-14" width="28" height="28" rx="7" class="card"/><g transform="translate(60,0) scale(.23)"><use href="#clasped"/></g>
+      <text x="18" y="50" class="note" text-anchor="middle">C</text>
+    </g>
+    <g transform="translate(696,64)">
+      <rect x="-26" y="-26" width="52" height="52" rx="12" class="card"/><g transform="translate(0,4) scale(.44)"><use href="#bowl"/></g>
+      <rect x="46" y="-14" width="28" height="28" rx="7" class="card"/><g transform="translate(60,2) scale(.24)"><use href="#bowl"/></g>
+      <text x="18" y="50" class="note" text-anchor="middle">D</text>
+    </g>
+  </g>
+
+  <!-- light lockup of A -->
+  <text x="48" y="748" class="label">A, light background</text>
+  <g transform="translate(48,758)">
+    <rect width="440" height="54" rx="14" fill="#F6F1E8" stroke="#E8E2D8"/>
+    <g transform="translate(58,28) scale(.42)">
+      <path d="M -46 -30 A 46 46 0 0 1 46 -30" fill="none" stroke="#1F6F6B" stroke-width="5" opacity=".45"/>
+      <path d="M -32 -26 A 32 32 0 0 1 32 -26" fill="none" stroke="#E8934A" stroke-width="5.5" stroke-linecap="round"/>
+      <circle cx="0" cy="-14" r="8" fill="#E8934A"/>
+      <path d="M -11 2 A 11 11 0 0 1 11 2" fill="none" stroke="#E8934A" stroke-width="6.5" stroke-linecap="round"/>
+      <path d="M -26 8 q 0 22 26 22 q 26 0 26 -22" fill="none" stroke="#1F6F6B" stroke-width="7" stroke-linecap="round"/>
+      <path d="M -26 8 v -9" stroke="#1F6F6B" stroke-width="7" stroke-linecap="round"/>
+      <path d="M -13 3 v -6" stroke="#1F6F6B" stroke-width="6" stroke-linecap="round"/>
+      <path d="M 0 2 v -5" stroke="#1F6F6B" stroke-width="6" stroke-linecap="round"/>
+      <path d="M 13 3 v -6" stroke="#1F6F6B" stroke-width="6" stroke-linecap="round"/>
+      <path d="M 26 8 v -9" stroke="#1F6F6B" stroke-width="7" stroke-linecap="round"/>
+    </g>
+    <text x="110" y="26" font-size="22" font-weight="600" fill="#14243A">hear<tspan fill="#1F6F6B" font-weight="700">Ally</tspan></text>
+    <text x="110" y="44" font-size="12" fill="#5A6672">Keeps the people on your side close.</text>
+  </g>
+</svg>

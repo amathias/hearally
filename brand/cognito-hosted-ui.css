@@ -1,0 +1,34 @@
+/* Hearally — Cognito hosted UI stylesheet.
+   Upload in Cognito → App integration → hosted UI customization.
+   The classic hosted UI accepts only these *-customizable classes.
+   If the pool uses the newer managed-login branding designer instead,
+   mirror these values in its editor. */
+
+.background-customizable   { background-color: #F6F1E8; }
+.banner-customizable       { padding: 24px 0 18px 0; background-color: #14243A; }
+.logo-customizable         { max-width: 220px; max-height: 64px; }
+.submitButton-customizable {
+  background-color: #1F6F6B; color: #FDFCFA; font-size: 15px; font-weight: 600;
+  border-radius: 10px; padding: 12px 0; margin: 18px 0 12px 0;
+}
+.submitButton-customizable:hover { background-color: #185956; color: #FFFFFF; }
+.inputField-customizable {
+  width: 100%; border: 1px solid #E8E2D8; border-radius: 10px;
+  background-color: #FDFCFA; color: #14243A; font-size: 16px; padding: 12px;
+}
+.inputField-customizable:focus { border-color: #1F6F6B; outline: 2px solid rgba(31,111,107,.18); }
+.label-customizable        { color: #14243A; font-weight: 600; font-size: 14px; }
+.textDescription-customizable { color: #5A6672; font-size: 14px; padding-top: 12px; }
+.idpDescription-customizable  { color: #5A6672; font-size: 14px; }
+.legalText-customizable    { color: #5A6672; font-size: 12px; }
+.errorMessage-customizable {
+  background-color: #FBEDE9; color: #B4462F; border: 1px solid #E7C9C0;
+  border-radius: 10px; padding: 10px; font-size: 14px;
+}
+.redirect-customizable     { text-align: center; }
+.passwordCheck-notValid-customizable { color: #B4462F; }
+.passwordCheck-valid-customizable    { color: #3E7A52; }
+.idpButton-customizable {
+  background-color: #FDFCFA; color: #14243A; border: 1px solid #E8E2D8; border-radius: 10px;
+}
+.idpButton-customizable:hover { background-color: #F2EDE4; }

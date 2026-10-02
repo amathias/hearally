@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 720" width="960" height="720" font-family="Inter, 'Segoe UI', system-ui, sans-serif">
+  <defs>
+    <style>
+      .card { fill: #14243A; }
+      .sand { fill: #F6F1E8; }
+      .amber { fill: #E8934A; }
+      .muted { fill: #9FB0AE; }
+      .label { fill: #5A6672; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; }
+      .s-sand { fill: none; stroke: #F6F1E8; stroke-linecap: round; }
+      .s-amber { fill: none; stroke: #E8934A; stroke-linecap: round; }
+    </style>
+    <g id="mark">
+      <circle cx="0" cy="0" r="12" fill="#F6F1E8"/>
+      <path d="M 21 -24 A 31 31 0 0 1 21 24" class="s-sand" stroke-width="6"/>
+      <path d="M 39 -37 A 48 48 0 0 1 39 37" class="s-amber" stroke-width="6"/>
+    </g>
+  </defs>
+
+  <rect width="960" height="720" fill="#FFFFFF"/>
+  <text x="48" y="44" fill="#14243A" font-size="20" font-weight="600">Hearally — tagline options</text>
+  <text x="48" y="66" class="label">same lockup, different promise</text>
+
+  <!-- 1 -->
+  <text x="48" y="104" class="label">1 · shortest</text>
+  <g transform="translate(48,114)">
+    <rect width="864" height="116" rx="16" class="card"/>
+    <g transform="translate(56,58)"><use href="#mark"/></g>
+    <text x="152" y="52" font-size="34" font-weight="600" class="sand">hear<tspan class="amber" font-weight="700">Ally</tspan></text>
+    <text x="152" y="82" font-size="17" class="muted">The people on your side.</text>
+  </g>
+
+  <!-- 2 -->
+  <text x="48" y="266" class="label">2 · adds the consent idea</text>
+  <g transform="translate(48,276)">
+    <rect width="864" height="116" rx="16" class="card"/>
+    <g transform="translate(56,58)"><use href="#mark"/></g>
+    <text x="152" y="52" font-size="34" font-weight="600" class="sand">hear<tspan class="amber" font-weight="700">Ally</tspan></text>
+    <text x="152" y="82" font-size="17" class="muted">The people on your side, told only what you choose.</text>
+  </g>
+
+  <!-- 3 -->
+  <text x="48" y="428" class="label">3 · the everyday job</text>
+  <g transform="translate(48,438)">
+    <rect width="864" height="116" rx="16" class="card"/>
+    <g transform="translate(56,58)"><use href="#mark"/></g>
+    <text x="152" y="52" font-size="34" font-weight="600" class="sand">hear<tspan class="amber" font-weight="700">Ally</tspan></text>
+    <text x="152" y="82" font-size="17" class="muted">Keeps the people on your side in the loop.</text>
+  </g>
+
+  <!-- 4 stacked / centred, for the site hero -->
+  <text x="48" y="590" class="label">4 · centred, for the site hero</text>
+  <g transform="translate(48,600)">
+    <rect width="420" height="96" rx="16" class="card"/>
+    <g transform="translate(210,40)">
+      <g transform="translate(-118,0)"><use href="#mark" transform="scale(.8)"/></g>
+      <text x="-62" y="10" font-size="28" font-weight="600" class="sand">hear<tspan class="amber" font-weight="700">Ally</tspan></text>
+    </g>
+    <text x="210" y="74" font-size="14" class="muted" text-anchor="middle">The people on your side.</text>
+  </g>
+
+  <!-- light version -->
+  <text x="504" y="590" class="label">5 · light background</text>
+  <g transform="translate(504,600)">
+    <rect width="408" height="96" rx="16" fill="#F6F1E8" stroke="#E8E2D8"/>
+    <g transform="translate(64,48)">
+      <circle cx="0" cy="0" r="12" fill="#1F6F6B"/>
+      <path d="M 21 -24 A 31 31 0 0 1 21 24" fill="none" stroke="#1F6F6B" stroke-width="6" stroke-linecap="round"/>
+      <path d="M 39 -37 A 48 48 0 0 1 39 37" fill="none" stroke="#E8934A" stroke-width="6" stroke-linecap="round"/>
+    </g>
+    <text x="136" y="46" font-size="28" font-weight="600" fill="#14243A">hear<tspan fill="#1F6F6B" font-weight="700">Ally</tspan></text>
+    <text x="136" y="70" font-size="14" fill="#5A6672">The people on your side.</text>
+  </g>
+</svg>

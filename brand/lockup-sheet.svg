@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 640" width="960" height="640" font-family="Inter, 'Segoe UI', system-ui, sans-serif">
+  <defs>
+    <style>
+      .card { fill: #14243A; }
+      .amber { fill: #E8934A; }
+      .muted { fill: #9FB0AE; }
+      .label { fill: #5A6672; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; }
+      .note { fill: #5A6672; font-size: 12px; }
+    </style>
+
+    <!-- THE MARK: two people side by side, two sound waves -->
+    <g id="mark">
+      <!-- person one: the account holder -->
+      <circle cx="-20" cy="-13" r="11" fill="#F6F1E8"/>
+      <path d="M -38 17 A 18 18 0 0 1 -2 17" fill="none" stroke="#F6F1E8" stroke-width="8.5" stroke-linecap="round"/>
+      <!-- person two: the ally -->
+      <circle cx="8" cy="-8" r="9" fill="#E8934A"/>
+      <path d="M -6 19 A 14 14 0 0 1 22 19" fill="none" stroke="#E8934A" stroke-width="7.5" stroke-linecap="round"/>
+      <!-- two sound waves -->
+      <path d="M 38 -20 A 26 26 0 0 1 38 20" fill="none" stroke="#F6F1E8" stroke-width="6" stroke-linecap="round"/>
+      <path d="M 54 -32 A 42 42 0 0 1 54 32" fill="none" stroke="#E8934A" stroke-width="6" stroke-linecap="round"/>
+    </g>
+
+    <!-- light-background version of the mark -->
+    <g id="markLight">
+      <circle cx="-20" cy="-13" r="11" fill="#1F6F6B"/>
+      <path d="M -38 17 A 18 18 0 0 1 -2 17" fill="none" stroke="#1F6F6B" stroke-width="8.5" stroke-linecap="round"/>
+      <circle cx="8" cy="-8" r="9" fill="#E8934A"/>
+      <path d="M -6 19 A 14 14 0 0 1 22 19" fill="none" stroke="#E8934A" stroke-width="7.5" stroke-linecap="round"/>
+      <path d="M 38 -20 A 26 26 0 0 1 38 20" fill="none" stroke="#1F6F6B" stroke-width="6" stroke-linecap="round"/>
+      <path d="M 54 -32 A 42 42 0 0 1 54 32" fill="none" stroke="#E8934A" stroke-width="6" stroke-linecap="round"/>
+    </g>
+  </defs>
+
+  <rect width="960" height="640" fill="#FFFFFF"/>
+  <text x="48" y="44" fill="#14243A" font-size="20" font-weight="600">hearally — primary lockup</text>
+  <text x="48" y="66" class="label">two people, two sound waves, wordmark to the right</text>
+
+  <!-- PRIMARY -->
+  <g transform="translate(48,92)">
+    <rect width="864" height="172" rx="18" class="card"/>
+    <g transform="translate(112,86)"><use href="#mark"/></g>
+    <text x="216" y="84" font-size="44" font-weight="700" fill="#E8934A">hearally</text>
+    <text x="218" y="116" font-size="17" class="muted">Keeps the people on your side close.</text>
+  </g>
+
+  <!-- compact, no tagline -->
+  <text x="48" y="300" class="label">compact · app bar</text>
+  <g transform="translate(48,312)">
+    <rect width="420" height="86" rx="16" class="card"/>
+    <g transform="translate(80,43) scale(.72)"><use href="#mark"/></g>
+    <text x="160" y="53" font-size="30" font-weight="700" fill="#E8934A">hearally</text>
+  </g>
+
+  <!-- light -->
+  <text x="504" y="300" class="label">light background</text>
+  <g transform="translate(504,312)">
+    <rect width="408" height="86" rx="16" fill="#F6F1E8" stroke="#E8E2D8"/>
+    <g transform="translate(78,43) scale(.72)"><use href="#markLight"/></g>
+    <text x="158" y="47" font-size="28" font-weight="700" fill="#1F6F6B">hearally</text>
+    <text x="160" y="66" font-size="12" fill="#5A6672">Keeps the people on your side close.</text>
+  </g>
+
+  <!-- icon sizes -->
+  <text x="48" y="436" class="label">icon · 64 · 48 · 32 · 24</text>
+  <g transform="translate(48,448)">
+    <rect width="864" height="150" rx="16" fill="#FDFCFA" stroke="#E8E2D8"/>
+    <g transform="translate(88,64)">
+      <rect x="-32" y="-32" width="64" height="64" rx="15" class="card"/><g transform="translate(-8,0) scale(.5)"><use href="#mark"/></g>
+    </g>
+    <g transform="translate(196,64)">
+      <rect x="-24" y="-24" width="48" height="48" rx="11" class="card"/><g transform="translate(-6,0) scale(.38)"><use href="#mark"/></g>
+    </g>
+    <g transform="translate(286,64)">
+      <rect x="-16" y="-16" width="32" height="32" rx="8" class="card"/><g transform="translate(-4,0) scale(.25)"><use href="#mark"/></g>
+    </g>
+    <g transform="translate(356,64)">
+      <rect x="-12" y="-12" width="24" height="24" rx="6" class="card"/><g transform="translate(-3,0) scale(.19)"><use href="#mark"/></g>
+    </g>
+    <text x="420" y="54" class="note">Sand is the account holder. Amber is the ally,</text>
+    <text x="420" y="74" class="note">and the same amber carries through the interface</text>
+    <text x="420" y="94" class="note">wherever the people on your side appear.</text>
+  </g>
+</svg>

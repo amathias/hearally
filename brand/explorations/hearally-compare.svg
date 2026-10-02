@@ -1,0 +1,125 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 700" width="960" height="700" font-family="Inter, 'Segoe UI', system-ui, sans-serif">
+  <defs>
+    <style>
+      .card { fill: #14243A; }
+      .amber { fill: #E8934A; }
+      .muted { fill: #9FB0AE; font-size: 13px; }
+      .wm { fill: #F6F1E8; font-size: 27px; font-weight: 600; }
+      .label { fill: #5A6672; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; }
+      .note { fill: #5A6672; font-size: 12px; }
+      .f-sand { fill: #F6F1E8; }
+      .f-amber { fill: #E8934A; }
+      .s-sand { fill: none; stroke: #F6F1E8; stroke-linecap: round; }
+      .s-amber { fill: none; stroke: #E8934A; stroke-linecap: round; }
+    </style>
+
+    <!-- LEFT: the current winner — "Beside" (dot, arcs, ally dot) -->
+    <g id="beside">
+      <circle cx="-20" cy="0" r="12" class="f-sand"/>
+      <path d="M 1 -24 A 31 31 0 0 1 1 24" class="s-sand" stroke-width="6"/>
+      <path d="M 19 -37 A 48 48 0 0 1 19 37" class="s-amber" stroke-width="6"/>
+      <circle cx="44" cy="0" r="8" class="f-amber"/>
+    </g>
+
+    <!-- RIGHT: two people, one arc -->
+    <g id="twopeople">
+      <circle cx="-16" cy="-12" r="10" class="f-sand"/>
+      <path d="M -33 16 A 17 17 0 0 1 1 16" class="s-sand" stroke-width="8"/>
+      <circle cx="14" cy="-7" r="8" class="f-amber"/>
+      <path d="M 0 18 A 14 14 0 0 1 28 18" class="s-amber" stroke-width="7"/>
+      <path d="M 44 -32 A 42 42 0 0 1 44 32" class="s-sand" stroke-width="5.5" opacity=".7"/>
+    </g>
+  </defs>
+
+  <rect width="960" height="700" fill="#FFFFFF"/>
+  <text x="48" y="44" fill="#14243A" font-size="20" font-weight="600">Head to head</text>
+  <text x="48" y="66" class="label">left: the current winner · right: two people, one arc</text>
+
+  <!-- big cards -->
+  <g transform="translate(48,92)">
+    <rect width="420" height="150" rx="16" class="card"/>
+    <g transform="translate(92,62)"><use href="#beside"/></g>
+    <text x="60" y="118" class="wm">hear<tspan class="amber" font-weight="700">Ally</tspan></text>
+    <text x="60" y="140" class="muted">Keeps the people on your side close.</text>
+  </g>
+
+  <g transform="translate(492,92)">
+    <rect width="420" height="150" rx="16" class="card"/>
+    <g transform="translate(92,60)"><use href="#twopeople"/></g>
+    <text x="60" y="118" class="wm">hear<tspan class="amber" font-weight="700">Ally</tspan></text>
+    <text x="60" y="140" class="muted">Keeps the people on your side close.</text>
+  </g>
+
+  <text x="48" y="266" class="note">One person, sound travelling to someone further off.</text>
+  <text x="492" y="266" class="note">Two people side by side, one arc over both.</text>
+
+  <!-- horizontal lockups -->
+  <text x="48" y="304" class="label">horizontal lockup</text>
+  <g transform="translate(48,316)">
+    <rect width="420" height="92" rx="16" class="card"/>
+    <g transform="translate(76,46) scale(.8)"><use href="#beside"/></g>
+    <text x="150" y="44" font-size="24" font-weight="600" fill="#F6F1E8">hear<tspan class="amber" font-weight="700">Ally</tspan></text>
+    <text x="150" y="64" font-size="12" class="muted">Keeps the people on your side close.</text>
+  </g>
+  <g transform="translate(492,316)">
+    <rect width="420" height="92" rx="16" class="card"/>
+    <g transform="translate(76,44) scale(.8)"><use href="#twopeople"/></g>
+    <text x="150" y="44" font-size="24" font-weight="600" fill="#F6F1E8">hear<tspan class="amber" font-weight="700">Ally</tspan></text>
+    <text x="150" y="64" font-size="12" class="muted">Keeps the people on your side close.</text>
+  </g>
+
+  <!-- small sizes -->
+  <text x="48" y="444" class="label">48px · 32px · 24px</text>
+  <g transform="translate(48,456)">
+    <rect width="420" height="104" rx="16" fill="#FDFCFA" stroke="#E8E2D8"/>
+    <g transform="translate(70,52)">
+      <rect x="-24" y="-24" width="48" height="48" rx="11" class="card"/><g transform="scale(.42)"><use href="#beside"/></g>
+    </g>
+    <g transform="translate(150,52)">
+      <rect x="-16" y="-16" width="32" height="32" rx="8" class="card"/><g transform="scale(.28)"><use href="#beside"/></g>
+    </g>
+    <g transform="translate(216,52)">
+      <rect x="-12" y="-12" width="24" height="24" rx="6" class="card"/><g transform="scale(.2)"><use href="#beside"/></g>
+    </g>
+    <text x="300" y="56" class="note">holds up well</text>
+  </g>
+  <g transform="translate(492,456)">
+    <rect width="420" height="104" rx="16" fill="#FDFCFA" stroke="#E8E2D8"/>
+    <g transform="translate(70,52)">
+      <rect x="-24" y="-24" width="48" height="48" rx="11" class="card"/><g transform="scale(.42)"><use href="#twopeople"/></g>
+    </g>
+    <g transform="translate(150,52)">
+      <rect x="-16" y="-16" width="32" height="32" rx="8" class="card"/><g transform="scale(.28)"><use href="#twopeople"/></g>
+    </g>
+    <g transform="translate(216,52)">
+      <rect x="-12" y="-12" width="24" height="24" rx="6" class="card"/><g transform="scale(.2)"><use href="#twopeople"/></g>
+    </g>
+    <text x="300" y="56" class="note">busier when small</text>
+  </g>
+
+  <!-- light -->
+  <text x="48" y="596" class="label">on the light background</text>
+  <g transform="translate(48,608)">
+    <rect width="420" height="66" rx="14" fill="#F6F1E8" stroke="#E8E2D8"/>
+    <g transform="translate(74,33) scale(.62)">
+      <circle cx="-20" cy="0" r="12" fill="#1F6F6B"/>
+      <path d="M 1 -24 A 31 31 0 0 1 1 24" fill="none" stroke="#1F6F6B" stroke-width="6" stroke-linecap="round"/>
+      <path d="M 19 -37 A 48 48 0 0 1 19 37" fill="none" stroke="#E8934A" stroke-width="6" stroke-linecap="round"/>
+      <circle cx="44" cy="0" r="8" fill="#E8934A"/>
+    </g>
+    <text x="136" y="32" font-size="22" font-weight="600" fill="#14243A">hear<tspan fill="#1F6F6B" font-weight="700">Ally</tspan></text>
+    <text x="136" y="50" font-size="12" fill="#5A6672">Keeps the people on your side close.</text>
+  </g>
+  <g transform="translate(492,608)">
+    <rect width="420" height="66" rx="14" fill="#F6F1E8" stroke="#E8E2D8"/>
+    <g transform="translate(70,33) scale(.62)">
+      <circle cx="-16" cy="-12" r="10" fill="#1F6F6B"/>
+      <path d="M -33 16 A 17 17 0 0 1 1 16" fill="none" stroke="#1F6F6B" stroke-width="8" stroke-linecap="round"/>
+      <circle cx="14" cy="-7" r="8" fill="#E8934A"/>
+      <path d="M 0 18 A 14 14 0 0 1 28 18" fill="none" stroke="#E8934A" stroke-width="7" stroke-linecap="round"/>
+      <path d="M 44 -32 A 42 42 0 0 1 44 32" fill="none" stroke="#1F6F6B" stroke-width="5.5" opacity=".6"/>
+    </g>
+    <text x="136" y="32" font-size="22" font-weight="600" fill="#14243A">hear<tspan fill="#1F6F6B" font-weight="700">Ally</tspan></text>
+    <text x="136" y="50" font-size="12" fill="#5A6672">Keeps the people on your side close.</text>
+  </g>
+</svg>
