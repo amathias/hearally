@@ -103,7 +103,14 @@ class DashboardContentTests(unittest.TestCase):
         body = section("overview", SUB, {}, FakeReader())
         self.assertEqual(
             body["counts"],
-            {"summaries": 0, "alerts": 0, "allies": 0, "computers": 0, "recordings": 0},
+            {
+                "summaries": 0,
+                "alerts": 0,
+                "allies": 0,
+                "allies_confirmed": 0,
+                "computers": 0,
+                "recordings": 0,
+            },
         )
         self.assertIsNone(body["latest_recording"])
         self.assertEqual(body["latest_summaries"], [])

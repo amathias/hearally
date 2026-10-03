@@ -75,7 +75,7 @@ A recorder that runs through someone's day captures things that are nobody else'
 
 ## 8. Messages
 
-Email through **Amazon SES** from `hearally.com`. Text messages will go through Twilio once toll-free verification is approved. Every message carries "not an emergency service" and a link to say it was nothing. Providers sit behind interfaces.
+Email through **Amazon SES** from `hearally.com`. Text messages to allies are not part of the preview; one-time codes for verifying phone numbers, when used, go through AWS End User Messaging. Every message carries "not an emergency service" and a link to say it was nothing. Providers sit behind interfaces.
 
 ## 9. The acknowledgement
 

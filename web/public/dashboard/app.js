@@ -1060,8 +1060,23 @@
                   : "Sign in to Plaud once, and new recordings come in by themselves.",
                 connected ? ["See your connections →", "/dashboard/integrations/"] : ["Connect your Plaud →", "/dashboard/integrations/"],
               ),
-              step(2, "later", "Add your allies", "Choose the people who should hear from Hearally. Each of them confirms before receiving anything."),
-              step(3, "later", "Choose what each ally hears", "You will see a real example of what they would have received before you agree."),
+              step(
+                2,
+                c.allies ? "done" : connected ? "next" : "later",
+                "Add your allies",
+                c.allies
+                  ? "You have " + c.allies + " all" + (c.allies === 1 ? "y" : "ies") + ". Each one chose to hear from you."
+                  : "Choose the people who should hear from Hearally, and what each one hears.",
+                ["Go to People →", "/dashboard/people/"],
+              ),
+              step(
+                3,
+                c.allies_confirmed ? "done" : c.allies ? "next" : "later",
+                "Your allies confirm",
+                c.allies_confirmed
+                  ? c.allies_confirmed + " confirmed. Messages reach them by email."
+                  : "Each ally gets an email, reads what Hearally is and is not, and confirms. Nothing reaches them before that.",
+              ),
             ]),
             heading("Latest summaries"),
             d.latest_summaries.length

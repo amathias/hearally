@@ -16,7 +16,7 @@ Live at [hearally.com](https://hearally.com), with a signed-in dashboard at [hea
 
 **Recordings reach Hearally in two ways.** The account holder signs in to Plaud once from the dashboard, and new recordings are brought in about every 15 minutes with no computer (through Plaud's hosted MCP server; still being tested). Or the **collector**, a small program on a computer, sends recordings exported from Plaud: [hearally.com/setup](https://hearally.com/setup/) and [collector/README.md](collector/README.md).
 
-**What works today:** sign-up with the terms and privacy policy, the in-app acknowledgement, both ways in, transcription with Parakeet on Nebius (account numbers silenced in the audio, transcripts deleted once read), the judgement with Nemotron and known scam scripts, and allies by email: invitation, confirmation on the ally's own page, heads-ups, "worth a call today", a daily list, and "this was nothing". **Not yet:** text messages to allies, and learning from "this was nothing".
+**What works today:** sign-up with the terms and privacy policy, the in-app acknowledgement, both ways in, transcription with Parakeet on Nebius (account numbers silenced in the audio, transcripts deleted once read), the judgement with Nemotron and known scam scripts, and allies by email: invitation, confirmation on the ally's own page, heads-ups, "worth a call today", a daily list, and "this was nothing". **Not yet:** learning from "this was nothing". Text messages to allies are not part of the preview.
 
 ## Built for the Nebius × NVIDIA Global AI Hackathon
 

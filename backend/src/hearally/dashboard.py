@@ -93,15 +93,16 @@ CAPABILITIES: tuple[dict[str, str], ...] = (
     {
         "id": "allies",
         "name": "Allies",
-        "status": "in_progress",
-        "detail": "Choosing your allies, and what each one hears, is being built.",
+        "status": "available",
+        "detail": "Add allies under People and choose what each one hears. Each confirms on "
+        "their own page before receiving anything.",
     },
     {
         "id": "messages",
         "name": "Messages to allies",
-        "status": "not_yet",
-        "detail": "Email is set up but not switched on. Text messages are waiting for carrier "
-        "approval of Hearally's sending number.",
+        "status": "available",
+        "detail": "By email: a heads-up at once, worth a call today to your first ally, "
+        "and a daily list. Text messages are not part of the preview.",
     },
 )
 
@@ -157,6 +158,7 @@ def section(
                 "summaries": len(summaries),
                 "alerts": len(alerts),
                 "allies": len(allies),
+                "allies_confirmed": sum(1 for a in allies if a.get("status") == "confirmed"),
                 "computers": sum(1 for c in computers if c.get("status") == "active"),
                 "recordings": len(recordings),
             },
