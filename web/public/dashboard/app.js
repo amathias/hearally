@@ -47,8 +47,8 @@
     var el = h("button", {
       type: "button",
       class: primary
-        ? "rounded-lg bg-teal px-5 py-2.5 font-sans font-semibold text-paper hover:brightness-110"
-        : "rounded-lg border border-line bg-paper px-4 py-2 font-sans font-semibold text-ink hover:bg-sand",
+        ? "rounded-lg bg-teal px-5 py-2.5 font-sans font-semibold text-paper hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:brightness-100"
+        : "rounded-lg border border-line bg-paper px-4 py-2 font-sans font-semibold text-ink hover:bg-sand disabled:cursor-not-allowed disabled:opacity-50",
       text: label,
     });
     el.addEventListener("click", onClick);
@@ -361,34 +361,44 @@
       boxes.push(box);
       fieldset.appendChild(h("div", { class: "mt-3 flex items-start gap-3" }, [box, h("label", { for: "agree-" + i, text: line })]));
     });
+    function unticked() {
+      return boxes.some(function (b) {
+        return !b.checked;
+      });
+    }
+    var hint = para("Tick all eight to continue.", "mt-2 font-sans text-sm text-muted");
     var agree = button(
       "I agree",
       function () {
-        if (
-          boxes.some(function (b) {
-            return !b.checked;
-          })
-        ) {
+        if (unticked()) {
           status.replaceChildren(para("Please tick each line first.", "mt-3 text-flag"));
           return;
         }
         agree.disabled = true;
         send("POST", "/v1/me/acknowledgement", { acknowledgement_version: version }).then(
           function (r) {
-            agree.disabled = false;
+            agree.disabled = unticked();
             if (r.signedOut) return signedOut();
             if (r.status === 200) return onAgreed();
             if (r.status === 409) return render(); // the wording changed: show it again
             status.replaceChildren(para("That could not be saved just now. Please try again.", "mt-3 text-flag"));
           },
           function () {
-            agree.disabled = false;
+            agree.disabled = unticked();
             status.replaceChildren(para("Hearally could not be reached. Please try again.", "mt-3 text-flag"));
           },
         );
       },
       true,
     );
+    function refresh() {
+      agree.disabled = unticked();
+      hint.hidden = !agree.disabled;
+    }
+    boxes.forEach(function (b) {
+      b.addEventListener("change", refresh);
+    });
+    refresh();
     return h("section", { class: "mt-4 rounded-xl border border-line bg-paper px-6 py-6" }, [
       h("h3", { class: "text-lg font-semibold", text: "Before your recordings come in" }),
       para(
@@ -396,7 +406,7 @@
         "mt-1 max-w-[40rem] text-muted",
       ),
       fieldset,
-      h("div", { class: "mt-5" }, [agree]),
+      h("div", { class: "mt-5" }, [agree, hint]),
       status,
     ]);
   }
@@ -689,7 +699,10 @@
     var plaudRow = h("tr", {}, [
       cell([
         h("p", { class: "font-semibold", text: "Plaud account" }),
-        h("p", { class: "mt-0.5 font-sans text-sm text-muted", text: "Plaud sign-in · checks every 15 minutes" }),
+        h("p", {
+          class: "mt-0.5 font-sans text-sm text-muted",
+          text: (plaud.connected_epoch ? "Connected since " + when(plaud.connected_epoch) : "Plaud sign-in") + " · checks every 15 minutes",
+        }),
         testOut,
       ]),
       cell(statusDot(true, "Connected")),
@@ -792,12 +805,20 @@
     stopped: ["Stopped receiving", false],
   };
 
-  function allyAction(action, body) {
-    return send("POST", "/v1/me/allies/" + action, body).then(function (r) {
-      if (r.signedOut) return signedOut();
-      if (r.status >= 200 && r.status < 300) return render();
-      window.alert((r.data && r.data.detail) || "That could not be saved just now. Please try again.");
-    });
+  function allyAction(action, body, note) {
+    function say(text) {
+      note.replaceChildren(para(text, "mt-3 text-flag"));
+    }
+    return send("POST", "/v1/me/allies/" + action, body).then(
+      function (r) {
+        if (r.signedOut) return signedOut();
+        if (r.status >= 200 && r.status < 300) return render();
+        say((r.data && r.data.detail) || "That could not be saved just now. Please try again.");
+      },
+      function () {
+        say("Hearally could not be reached. Please try again.");
+      },
+    );
   }
 
   function nameCard(d) {
@@ -809,15 +830,21 @@
       class: "mt-2 w-full max-w-[20rem] rounded-lg border border-line bg-paper px-3 py-2",
       "aria-label": "How your allies know you",
     });
+    var note = h("div", { "aria-live": "polite" });
     return h("section", { class: "mt-4 rounded-xl border border-line bg-paper px-6 py-5" }, [
       h("h3", { class: "text-lg font-semibold", text: "How your allies know you" }),
       para("Used in every message, so they know who it is about.", "mt-1 text-muted"),
       input,
       h("div", { class: "mt-3" }, [
         button("Save", function () {
-          allyAction("name", { display_name: input.value });
+          if (!input.value.trim()) {
+            note.replaceChildren(para("Please enter a name.", "mt-3 text-flag"));
+            return;
+          }
+          allyAction("name", { display_name: input.value }, note);
         }, !d.display_name),
       ]),
+      note,
     ]);
   }
 
@@ -845,9 +872,19 @@
             note.replaceChildren(para("First, save how your allies know you, above.", "mt-3 text-flag"));
             return;
           }
+          if (!name[0].value.trim()) {
+            note.replaceChildren(para("Please enter their name.", "mt-3 text-flag"));
+            name[0].focus();
+            return;
+          }
+          if (!email[0].value.trim() || !email[0].checkValidity()) {
+            note.replaceChildren(para("Please enter a full email address, like name@example.com.", "mt-3 text-flag"));
+            email[0].focus();
+            return;
+          }
           var tz = "";
           try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ""; } catch (e) {}
-          allyAction("add", { name: name[0].value, email: email[0].value, relationship: rel[0].value, level: level.value, timezone: tz });
+          allyAction("add", { name: name[0].value, email: email[0].value, relationship: rel[0].value, level: level.value, timezone: tz }, note);
         }, true),
       ]),
       note,
@@ -855,6 +892,11 @@
   }
 
   function alliesTable(d) {
+    var note = h("div", { "aria-live": "polite" });
+    return h("div", {}, [alliesRows(d, note), note]);
+  }
+
+  function alliesRows(d, note) {
     return table(
       ["Ally", "Status", "What they hear", ""],
       d.allies.map(function (a) {
@@ -866,7 +908,7 @@
             return o;
           }));
         level.addEventListener("change", function () {
-          allyAction("update", { ally_id: a.id, level: level.value });
+          allyAction("update", { ally_id: a.id, level: level.value }, note);
         });
         return h("tr", {}, [
           cell([
@@ -877,11 +919,11 @@
           cell(statusDot(st[1], st[0])),
           cell(level),
           cell(h("div", { class: "flex flex-wrap gap-2" }, [
-            a.first || a.status !== "confirmed" ? null : button("Make first ally", function () { allyAction("update", { ally_id: a.id, first: true }); }),
-            a.status === "invited" ? button("Resend", function () { allyAction("resend", { ally_id: a.id }); }) : null,
+            a.first || a.status !== "confirmed" ? null : button("Make first ally", function () { allyAction("update", { ally_id: a.id, first: true }, note); }),
+            a.status === "invited" ? button("Resend", function () { allyAction("resend", { ally_id: a.id }, note); }) : null,
             button("Remove", function () {
               if (window.confirm("Remove " + a.name + "? Their link stops working at once, and nothing more reaches them.")) {
-                allyAction("remove", { ally_id: a.id });
+                allyAction("remove", { ally_id: a.id }, note);
               }
             }),
           ].filter(Boolean))),
@@ -1006,7 +1048,14 @@
 
           // One line that says whether recordings are reaching Hearally.
           var status = h("div", { class: "flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border border-line bg-paper px-5 py-4" }, [
-            statusDot(connected, connected ? "Recordings can reach Hearally" : "Nothing is connected yet"),
+            statusDot(
+              connected && d.acknowledged,
+              !connected
+                ? "Nothing is connected yet"
+                : d.acknowledged
+                  ? "Recordings can reach Hearally"
+                  : "Connected. Nothing comes in until you agree below",
+            ),
             h("span", {
               class: "font-sans text-sm text-muted",
               text: [
@@ -1065,7 +1114,7 @@
                 c.allies ? "done" : connected ? "next" : "later",
                 "Add your allies",
                 c.allies
-                  ? "You have " + c.allies + " all" + (c.allies === 1 ? "y" : "ies") + ". Each one chose to hear from you."
+                  ? "You have " + c.allies + " all" + (c.allies === 1 ? "y" : "ies") + ". Each one confirms on their own page before receiving anything."
                   : "Choose the people who should hear from Hearally, and what each one hears.",
                 ["Go to People →", "/dashboard/people/"],
               ),

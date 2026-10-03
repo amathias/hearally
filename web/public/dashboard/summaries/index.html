@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&amp;family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/styles.css?v=75c1501c8d">
+<link rel="stylesheet" href="/styles.css?v=e596a72b1b">
 </head>
 <body class="dashboard min-h-screen bg-sand text-ink" data-section="summaries">
 <a href="#main" class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-paper focus:px-4 focus:py-2 focus:font-semibold">Skip to content</a>
@@ -27,8 +27,8 @@
     <span class="font-sans text-xl font-bold tracking-tight text-amber">hearally</span>
   </a>
   <span class="ml-2 hidden rounded bg-ink-2 px-2 py-0.5 font-sans text-xs font-semibold text-muted-dark sm:inline">Public preview (beta)</span>
-  <div class="ml-auto flex items-center gap-3">
-    <span id="signed-in-as" class="hidden max-w-[26rem] truncate font-sans text-sm text-muted-dark sm:inline"></span>
+  <div class="ml-auto flex min-w-0 items-center gap-3">
+    <span class="hidden min-w-0 max-w-[26rem] truncate font-sans text-sm text-muted-dark sm:block"><span id="signed-in-as" class="hidden"></span></span>
     <button id="sign-out" type="button" hidden class="rounded-md border border-line-dark px-3 py-1.5 font-sans text-sm font-semibold text-sand hover:bg-ink-2">Sign out</button>
     <button id="menu-toggle" type="button" aria-expanded="false" aria-controls="dashboard-nav" class="rounded-md border border-line-dark px-3 py-1.5 font-sans text-sm font-semibold text-sand hover:bg-ink-2 md:hidden">Menu</button>
   </div>
@@ -69,6 +69,6 @@
 </div>
 
 <script src="/dashboard/config.js?v=9c1212e6cf"></script>
-<script src="/dashboard/app.js?v=d0ea9839c1"></script>
+<script src="/dashboard/app.js?v=bb73982cf0"></script>
 </body>
 </html>

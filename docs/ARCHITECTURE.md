@@ -65,7 +65,7 @@ A recorder that runs through someone's day captures things that are nobody else'
 
 - **Adding an ally**: name, email, an optional relationship, and what they hear: *heads-ups, calls and the daily list*, *heads-ups only*, or *nothing for now*. Up to five; one is the **first ally**.
 - **The ally link**: a 256-bit random token, of which only a digest is stored. It travels in the URL **fragment** (`/a/#t=…`), which browsers never send to a server, and the ally page posts it in request bodies. Removing an ally revokes their link at once.
-- **Allies consent too.** Before anything reaches them, an ally reads five short statements (not an emergency service, will miss things, may be nothing, nobody is on duty, can stop at any time), ticks each, and confirms. Each decision is recorded, append-only.
+- **Allies consent too.** Before anything reaches them, an ally reads five short statements (not an emergency service, will miss things, may be nothing, nobody is on duty, can stop at any time), ticks one box agreeing to them and to the terms of use and privacy policy, and confirms. Each decision is recorded, append-only.
 - **Delivery**, enforced in code:
   - a **heads-up** goes at once to every confirmed ally who hears heads-ups;
   - **worth a call today** goes to the first ally, held to the end of their quiet hours (21:00 to 08:00 in their time zone);

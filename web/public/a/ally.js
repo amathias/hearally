@@ -32,8 +32,8 @@
     var b = h("button", {
       type: "button",
       class: primary
-        ? "rounded-lg bg-teal px-5 py-2.5 font-sans font-semibold text-paper hover:brightness-110"
-        : "rounded-lg border border-line bg-paper px-4 py-2 font-sans font-semibold text-ink hover:bg-sand",
+        ? "rounded-lg bg-teal px-5 py-2.5 font-sans font-semibold text-paper hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:brightness-100"
+        : "rounded-lg border border-line bg-paper px-4 py-2 font-sans font-semibold text-ink hover:bg-sand disabled:cursor-not-allowed disabled:opacity-50",
       text: label,
     });
     b.addEventListener("click", onClick);
@@ -94,37 +94,59 @@
     "You can stop receiving these at any time, from this page.",
   ];
 
+  // The statements are shown in full; one tick agrees to all of them and to
+  // the terms (ARCHITECTURE.md section 7).
   function invited(v) {
-    var boxes = [];
-    var list = h("div", { class: "mt-5" });
-    STATEMENTS.forEach(function (line, i) {
-      var box = h("input", { type: "checkbox", id: "s" + i, class: "mt-1 h-5 w-5 shrink-0 accent-teal" });
-      boxes.push(box);
-      list.appendChild(h("div", { class: "mt-3 flex items-start gap-3" }, [box, h("label", { for: "s" + i, text: line })]));
-    });
+    var list = h(
+      "ul",
+      { class: "mt-4 list-disc space-y-2 pl-6" },
+      STATEMENTS.map(function (line) {
+        return h("li", { text: line });
+      }),
+    );
+    function link(href, text) {
+      return h("a", { href: href, target: "_blank", rel: "noopener", class: "font-semibold text-teal underline underline-offset-4", text: text });
+    }
+    var box = h("input", { type: "checkbox", id: "agree", class: "mt-1 h-5 w-5 shrink-0 accent-teal" });
+    var agreement = h("div", { class: "mt-6 flex items-start gap-3 rounded-xl border border-line bg-paper px-4 py-4" }, [
+      box,
+      h("label", { for: "agree" }, [
+        "I have read the points above, and I agree to Hearally's ",
+        link("/terms/", "Terms of use"),
+        " and ",
+        link("/privacy/", "Privacy policy"),
+        ".",
+      ]),
+    ]);
     var note = h("div", { "aria-live": "polite" });
+    var join;
     show([
       h("h1", { class: "text-[1.8rem] font-semibold leading-tight" }, [
         h("span", { class: "text-amber-text", text: v.ally }),
         ", " + v.holder + " would like you as one of their allies.",
       ]),
       p(v.holder + " uses Hearally, which passes along things mentioned out loud near their Plaud recorder to the people they choose. They decide what you hear, and they can change it at any time."),
-      h("h2", { class: "mt-8 text-lg font-semibold", text: "Before anything reaches you, please read and tick each of these." }),
+      h("h2", { class: "mt-8 text-lg font-semibold", text: "Before anything reaches you, please read these." }),
       list,
+      agreement,
       h("div", { class: "mt-6 flex flex-wrap gap-3" }, [
-        btn("I understand, count me in", function () {
-          if (boxes.some(function (b) { return !b.checked; })) {
-            note.replaceChildren(p("Please tick each line first.", "mt-3 text-flag"));
+        (join = btn("I understand, count me in", function () {
+          if (!box.checked) {
+            note.replaceChildren(p("Please tick the box above first.", "mt-3 text-flag"));
             return;
           }
           call("confirm").then(function (r) { r.status === 200 ? load() : r.status === 404 ? invalid() : failed(); }, failed);
-        }, true),
+        }, true)),
         btn("No thanks", function () {
           call("decline").then(function () { load(); }, failed);
         }),
       ]),
       note,
     ]);
+    join.disabled = true;
+    box.addEventListener("change", function () {
+      join.disabled = !box.checked;
+    });
   }
 
   var REASONS = [

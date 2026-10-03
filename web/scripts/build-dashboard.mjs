@@ -130,8 +130,8 @@ function page(id) {
     <span class="font-sans text-xl font-bold tracking-tight text-amber">hearally</span>
   </a>
   <span class="ml-2 hidden rounded bg-ink-2 px-2 py-0.5 font-sans text-xs font-semibold text-muted-dark sm:inline">Public preview (beta)</span>
-  <div class="ml-auto flex items-center gap-3">
-    <span id="signed-in-as" class="hidden max-w-[26rem] truncate font-sans text-sm text-muted-dark sm:inline"></span>
+  <div class="ml-auto flex min-w-0 items-center gap-3">
+    <span class="hidden min-w-0 max-w-[26rem] truncate font-sans text-sm text-muted-dark sm:block"><span id="signed-in-as" class="hidden"></span></span>
     <button id="sign-out" type="button" hidden class="rounded-md border border-line-dark px-3 py-1.5 font-sans text-sm font-semibold text-sand hover:bg-ink-2">Sign out</button>
     <button id="menu-toggle" type="button" aria-expanded="false" aria-controls="dashboard-nav" class="rounded-md border border-line-dark px-3 py-1.5 font-sans text-sm font-semibold text-sand hover:bg-ink-2 md:hidden">Menu</button>
   </div>
