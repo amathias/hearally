@@ -21,6 +21,6 @@ A second environment requires a new recorded decision and separate state.
 ## Consequences
 
 - What the judges see deployed is the only thing that exists, so the documentation cannot drift from reality.
-- Changes are validated by `terraform plan`, unit tests and CI before apply, because there is no staging to catch them.
+- Changes are validated locally by `terraform plan` and unit tests before apply, because there is no staging to catch them. GitHub Actions are removed for now and can be reintroduced later if needed.
 - External messaging defaults to mock mode in development so that testing cannot send a real text to a real ally.
 - Cost stays close to the minimum for the whole build.
