@@ -71,7 +71,7 @@ A recorder that runs through someone's day captures things that are nobody else'
   - **worth a call today** goes to the first ally, held to the end of their quiet hours (21:00 to 08:00 in their time zone);
   - everything else arrives in a **daily list** at 18:00 their time.
 - A delivery job claims each due message exactly once (a conditional delete), checks the ally is still confirmed, sends, and logs it. The account holder sees every message under **"what your allies heard"**.
-- **"This was nothing"**: the ally picks a reason, which is kept with the item.
+- **"This was nothing"**: the ally picks a reason, which is kept with the item. If the item was a heads-up or worth a call today, what set it off (its category and pressure signals) becomes a **learned pattern** (`backend/src/hearally/learning.py`). A later item of the same kind that brings nothing new goes to the daily list instead, never further, and does not use the day's heads-up. One with a new element is graded as usual, and its message says what was new. Patterns last 90 days from the latest dismissal; the account holder sees them all under Preferences, "What Hearally has learned", and can remove any of them. Applied in code after the model has spoken; the model is never told.
 
 ## 8. Messages
 
@@ -79,7 +79,7 @@ Email through **Amazon SES** from `hearally.com`. Text messages to allies are no
 
 ## 9. The acknowledgement
 
-Before any recording comes in, the account holder ticks eight statements one by one: not for emergencies; not a medical device; reports what was said and does not detect falls, accidents or illness; will miss things and sometimes flag nothing; nobody is standing by; care decisions are theirs; they will only record what they have the legal right to record; and they are 18 or older. The acceptance is stored with a version, and a new version must be accepted again. Sign-up itself (Cognito Managed Login) links the terms of use and the privacy policy.
+Before any recording comes in, the account holder reads four points (not an emergency service and not a medical device; reports what was said, does not detect falls, accidents or illness, and will miss things and sometimes flag nothing; nobody is standing by and care decisions are theirs; they will only record what they have the legal right to record) and ticks one box confirming they have read them, are 18 or older, and agree to the terms of use and privacy policy. The acceptance is stored with a version, and a new version must be accepted again. Sign-up itself (Cognito Managed Login) links the terms of use and the privacy policy.
 
 ## 10. Data and privacy rules
 

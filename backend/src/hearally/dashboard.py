@@ -23,7 +23,23 @@ SECTIONS = frozenset(
 
 # Fields each record type may expose to the browser. Anything else is dropped.
 _FIELDS: Mapping[str, frozenset[str]] = {
-    "ITEM#": frozenset({"id", "spoken_at", "category", "grade", "summary", "language"}),
+    "ITEM#": frozenset(
+        {"id", "spoken_at", "category", "grade", "summary", "language", "learned", "new_signals"}
+    ),
+    # What Hearally learned from an ally's "this was nothing" (learning.py).
+    "SUPPRESSION#": frozenset(
+        {
+            "id",
+            "category",
+            "signals",
+            "reason",
+            "ally_name",
+            "learned_at",
+            "expires_at",
+            "matched",
+            "last_matched_at",
+        }
+    ),
     "ALERT#": frozenset({"id", "created_at", "summary", "status", "acknowledged_at"}),
     "SENT#": frozenset({"id", "sent_at", "channel", "ally_name", "status", "kind"}),
     "ALLY#": frozenset(
@@ -103,6 +119,13 @@ CAPABILITIES: tuple[dict[str, str], ...] = (
         "status": "available",
         "detail": "By email: a heads-up at once, worth a call today to your first ally, "
         "and a daily list. Text messages are not part of the preview.",
+    },
+    {
+        "id": "learning",
+        "name": 'Learning from "this was nothing"',
+        "status": "available",
+        "detail": "When an ally says something was nothing, similar things go to the daily "
+        "list instead. See and remove what it learned under Preferences.",
     },
 )
 
@@ -195,6 +218,7 @@ def section(
         return {
             "blocklist_topics": list(_plain((blocklist or {}).get("topics", []))),
             "dignity_filter": "custom" if dignity else "default",
+            "learned": _records(reader, sub, "SUPPRESSION#"),
             "editing_available": False,
         }
     # account

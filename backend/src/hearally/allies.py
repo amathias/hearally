@@ -40,6 +40,8 @@ from datetime import UTC, datetime, timedelta
 from typing import Any, Protocol
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
+from hearally.learning import PREFIX as LEARNED_PREFIX
+from hearally.learning import new_element_line, pattern_from
 from hearally.models import ValidationError
 
 LEVELS = ("off", "alerts_only", "alerts_and_items")
@@ -183,6 +185,7 @@ class AllyRepository(Protocol):
     def due_outbox(self, now: float, limit: int) -> list[dict[str, Any]]: ...
     def claim_outbox(self, sort_key: str) -> dict[str, Any] | None: ...
     def put(self, sub: str, sort_key: str, item: dict[str, Any]) -> None: ...
+    def delete(self, sub: str, sort_key: str) -> bool: ...
 
 
 class InMemoryAllyRepository:
@@ -262,6 +265,9 @@ class InMemoryAllyRepository:
 
     def put(self, sub: str, sort_key: str, item: dict[str, Any]) -> None:
         self.records[(self._user(sub), sort_key)] = dict(item)
+
+    def delete(self, sub: str, sort_key: str) -> bool:
+        return self.records.pop((self._user(sub), sort_key), None) is not None
 
 
 class DynamoAllyRepository:
@@ -383,6 +389,12 @@ class DynamoAllyRepository:
 
     def put(self, sub: str, sort_key: str, item: dict[str, Any]) -> None:
         self._table.put_item(Item={"pk": f"USER#{sub}", "sk": sort_key, **item})
+
+    def delete(self, sub: str, sort_key: str) -> bool:
+        old = self._table.delete_item(
+            Key={"pk": f"USER#{sub}", "sk": sort_key}, ReturnValues="ALL_OLD"
+        )
+        return bool(old.get("Attributes"))
 
 
 def _plain(item: Mapping[str, Any]) -> dict[str, Any]:
@@ -573,6 +585,13 @@ class AllyService:
             self._repo.delete_link(ally["link_digest"])
         self._repo.delete_ally(sub, ally_id)
 
+    def forget(self, sub: str, pattern_id: Any) -> None:
+        """Remove one thing Hearally learned from "this was nothing"."""
+        if not isinstance(pattern_id, str) or not re.fullmatch(r"[0-9a-f]{16}", pattern_id):
+            raise ValidationError("pattern_id is not recognised")
+        if not self._repo.delete(sub, f"{LEARNED_PREFIX}{pattern_id}"):
+            raise AllyNotFoundError
+
     def resend(self, sub: str, ally_id: str) -> None:
         ally = self._repo.ally(sub, ally_id)
         if not ally:
@@ -645,13 +664,24 @@ class AllyLinkService:
         self._set(token, {"status": "stopped", "level": "off"}, "stopped")
 
     def dismiss(self, token: Any, item_id: Any, reason: Any) -> None:
-        """'This was nothing': kept with the item for learning (ARCHITECTURE.md section 7)."""
+        """'This was nothing': kept with the item, and learned from
+        (learning.py, ARCHITECTURE.md section 7)."""
         sub, ally = self._resolve(token)
         if not isinstance(item_id, str) or not re.fullmatch(r"[0-9a-f]{16}", item_id):
             raise ValidationError("item_id is not recognised")
         if reason not in DISMISS_REASONS:
             raise ValidationError("reason is not recognised")
+        # Only an item this ally's page shows them can be dismissed.
+        shown = {i["id"]: i for i in self.view(token)["items"]}
+        if item_id not in shown:
+            raise ValidationError("item_id is not recognised")
+        item = next(
+            (i for i in self._repo.items(sub, 50) if i.get("id") == item_id), shown[item_id]
+        )
         now = self._clock()
+        pattern = pattern_from(item, reason=reason, ally=ally, now=now)
+        if pattern:
+            self._repo.put(sub, f"{LEARNED_PREFIX}{pattern['id']}", pattern)
         self._repo.put(
             sub,
             f"FEEDBACK#{item_id}#{ally['id']}",
@@ -768,6 +798,8 @@ class Deliverer:
             ]
         else:
             lines = [f"About {holder}: {items[0]['summary']}"]
+        if kind != "digest" and items[0].get("new_signals"):
+            lines.append(new_element_line(items[0]["new_signals"]))
         lines.append(
             "Hearally reports what was said, and it can be wrong. "
             "If it was nothing, you can say so with one tap."

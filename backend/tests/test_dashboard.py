@@ -202,6 +202,24 @@ class DashboardContentTests(unittest.TestCase):
         self.assertFalse(body["editing_available"])
         self.assertEqual(body["dignity_filter"], "default")
 
+    def test_preferences_list_what_was_learned_and_nothing_more(self) -> None:
+        pattern = {
+            "sk": "SUPPRESSION#" + "a" * 16,
+            "id": "a" * 16,
+            "category": "scam_pressure",
+            "signals": ["urgency"],
+            "reason": "known_caller",
+            "ally_name": "Dana",
+            "ally_id": "a1",
+            "item_id": "b" * 16,
+            "ttl_epoch": 1,
+        }
+        reader = FakeReader({(SUB, "SUPPRESSION#"): [pattern]})
+        [learned] = section("preferences", SUB, {}, reader)["learned"]
+        self.assertEqual((learned["ally_name"], learned["signals"]), ("Dana", ["urgency"]))
+        for internal in ("sk", "ally_id", "item_id", "ttl_epoch"):
+            self.assertNotIn(internal, learned)
+
     def test_every_capability_states_its_status(self) -> None:
         for capability in CAPABILITIES:
             with self.subTest(capability=capability["id"]):

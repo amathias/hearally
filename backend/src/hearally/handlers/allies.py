@@ -1,6 +1,6 @@
 """Allies: managed by the account holder, and the ally's own link.
 
-    POST /v1/me/allies/{action}   signed in: add, update, remove, resend, name
+    POST /v1/me/allies/{action}   signed in: add, update, remove, resend, name, forget
     POST /v1/ally/{action}        an ally link: view, confirm, decline, stop, dismiss
     deliver_handler               every 10 minutes: send what is due
 
@@ -29,7 +29,7 @@ from hearally.models import ValidationError
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 
-MANAGE = {"add", "update", "remove", "resend", "name"}
+MANAGE = {"add", "update", "remove", "resend", "name", "forget"}
 LINK = {"view", "confirm", "decline", "stop", "dismiss"}
 MAX_BODY = 4_096
 
@@ -59,6 +59,10 @@ def handle_manage(
             return _private(json_response(200, {"display_name": name}))
         if action == "add":
             return _private(json_response(201, {"ally": _public(allies.add(sub, body))}))
+        if action == "forget":
+            # Something learned from "this was nothing", not an ally.
+            allies.forget(sub, body.get("pattern_id"))
+            return _private(json_response(200, {"done": True}))
         ally_id = body.pop("ally_id", None)
         if not isinstance(ally_id, str) or not ally_id:
             raise ValidationError("ally_id is required")

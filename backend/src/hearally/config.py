@@ -11,7 +11,7 @@ from hearally.languages import SUPPORTED_LANGUAGE_TAGS
 # 2026-09-24 added line 7: record only what you have the legal right to record.
 # 2026-10-01 added line 8: I am 18 or older. Cognito's sign-up page links the
 # terms and privacy policy; the age confirmation is asked here, in our app.
-ACKNOWLEDGEMENT_VERSION = "2026-10-01"
+ACKNOWLEDGEMENT_VERSION = "2026-10-03"
 
 
 class ConfigurationError(RuntimeError):

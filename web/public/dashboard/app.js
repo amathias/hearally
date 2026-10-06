@@ -326,52 +326,140 @@
   }
 
   function summaryRow(item) {
+    var learned = item.learned
+      ? "Kept for the daily list: an ally said something like this was nothing."
+      : item.new_signals && item.new_signals.length
+        ? "Passed on: something like this was marked as nothing before, but this had " + signalWords(item.new_signals) + "."
+        : "";
     return h("li", { class: "py-4" }, [
       h("p", { text: item.summary || "" }),
       h("p", { class: "mt-1 font-sans text-sm text-muted", text: [when(item.spoken_at), item.category].filter(Boolean).join(" · ") }),
+      learned ? h("p", { class: "mt-1 font-sans text-sm text-amber-text", text: learned }) : null,
     ]);
+  }
+
+  // ---------- what Hearally learned from "this was nothing" ----------
+  //
+  // ARCHITECTURE.md section 7. The words mirror backend/src/hearally/learning.py.
+
+  var LEARNED_KINDS = {
+    scam_pressure: "Calls pressing for money or details",
+    appointment: "Appointments",
+    help_request: "Requests for help",
+  };
+  var SIGNAL_WORDS = {
+    asks_for_account_details: "asking for account details",
+    asks_for_payment: "asking for payment",
+    urgency: "pressure to act fast",
+    secrecy: "asking to keep it secret",
+    impersonation: "claiming to be someone official",
+    gift_cards: "gift cards",
+    remote_access: "remote access to a computer",
+  };
+  var DISMISS_WORDS = {
+    handled_it: "It's handled",
+    known_caller: "I know the caller",
+    was_me: "That was me",
+    tv_or_radio: "It was the TV or radio",
+    not_a_concern: "Not a concern",
+    other: "Something else",
+  };
+
+  function signalWords(signals) {
+    var words = signals.map(function (s) {
+      return SIGNAL_WORDS[s] || s.replace(/_/g, " ");
+    });
+    return words.length < 2 ? words.join("") : words.slice(0, -1).join(", ") + " and " + words[words.length - 1];
+  }
+
+  function learnedSection(d) {
+    var note = h("div", { "aria-live": "polite" });
+    var rows = (d.learned || []).map(function (p) {
+      var kind = LEARNED_KINDS[p.category] || p.category;
+      var used = p.matched ? " · used " + p.matched + (p.matched === 1 ? " time" : " times") : "";
+      return h("li", { class: "flex flex-wrap items-start justify-between gap-3 py-4" }, [
+        h("div", { class: "min-w-0 max-w-[40rem]" }, [
+          h("p", { class: "font-semibold", text: kind + (p.signals && p.signals.length ? ", with " + signalWords(p.signals) : "") }),
+          h("p", { class: "mt-1", text: "Now kept for the daily list, unless something new comes up." }),
+          h("p", { class: "mt-1 font-sans text-sm text-muted" }, [
+            h("span", { class: "font-semibold text-amber-text", text: p.ally_name || "An ally" }),
+            " said \u201c" + (DISMISS_WORDS[p.reason] || "This was nothing") + "\u201d · learned " + when(p.learned_at) + used + " · until " + when(p.expires_at),
+          ]),
+        ]),
+        button("Remove", function () {
+          allyAction("forget", { pattern_id: p.id }, note);
+        }),
+      ]);
+    });
+    return [
+      heading("What Hearally has learned"),
+      para("When an ally says a heads-up or a call-today message was nothing, similar things go to the daily list instead. Never further: nothing disappears. Each lasts 90 days, and you can remove any of them.", "mt-1 max-w-[44rem] text-muted"),
+      rows.length
+        ? h("ul", { class: "mt-4 divide-y divide-line border-y border-line" }, rows)
+        : empty("Nothing learned yet.", "It appears here after an ally says something was nothing."),
+      note,
+    ];
   }
 
   // ---------- connecting a computer ----------
 
-  // ARCHITECTURE.md section 9. Each line is ticked separately, and the version is
-  // recorded with the acceptance. Changing any line means a new version.
+  // ARCHITECTURE.md section 9. The points are shown in full and one tick
+  // accepts them, the age confirmation and the terms. The version is recorded
+  // with the acceptance: changing any wording means a new version
+  // (ACKNOWLEDGEMENT_VERSION in backend/src/hearally/config.py).
   var ACKNOWLEDGEMENT = [
-    "Hearally is not for emergencies. If someone needs help now, I will call 911.",
-    "Hearally is not a medical device. It does not diagnose, treat or monitor any health condition.",
-    "Hearally reports things that were said out loud. It does not detect falls, accidents or illness.",
-    "It will miss things, and it will sometimes flag things that turn out to be nothing.",
-    "Nobody is standing by. Messages go to the allies I choose; there is no guarantee anyone sees or acts on one.",
-    "Care decisions are mine.",
-    "I will only record conversations I have the legal right to record. Some places, including several US states, require everyone in a conversation, phone calls included, to agree to being recorded. Where the law requires that, I will get agreement first. I am responsible for what I record and upload, not Hearally.",
-    "I am 18 or older.",
+    "Hearally is not an emergency service and not a medical device. It does not diagnose, treat or monitor any health condition. If someone needs help now, I will call 911.",
+    "It reports things that were said out loud. It does not detect falls, accidents or illness. It will miss things, and it will sometimes flag things that turn out to be nothing.",
+    "Nobody is standing by. Messages go to the allies I choose, with no guarantee anyone sees or acts on one. Care decisions are mine.",
+    "I will only record conversations I have the legal right to record. Where the law requires everyone in a conversation to agree, as several US states do, phone calls included, I will get agreement first. I am responsible for what I record and upload, not Hearally.",
   ];
+
+  // The points, then the one box that accepts them.
+  function agreementFields(id) {
+    function link(href, text) {
+      return h("a", { href: href, target: "_blank", rel: "noopener", class: "font-semibold text-teal underline underline-offset-4", text: text });
+    }
+    var box = h("input", { type: "checkbox", id: id, class: "mt-1 h-5 w-5 shrink-0 accent-teal" });
+    var node = h("div", {}, [
+      h(
+        "ul",
+        { class: "mt-4 max-w-[44rem] list-disc space-y-2 pl-6" },
+        ACKNOWLEDGEMENT.map(function (line) {
+          return h("li", { text: line });
+        }),
+      ),
+      h("div", { class: "mt-5 flex max-w-[44rem] items-start gap-3 rounded-xl border border-line bg-sand px-4 py-4" }, [
+        box,
+        h("label", { for: id }, [
+          "I have read these, I am 18 or older, and I agree to Hearally's ",
+          link("/terms/", "Terms of use"),
+          " and ",
+          link("/privacy/", "Privacy policy"),
+          ".",
+        ]),
+      ]),
+    ]);
+    return { node: node, box: box };
+  }
 
   // The signup acknowledgement (ARCHITECTURE.md section 9), wherever it is needed:
   // Today, and before connecting Plaud. Each line ticked on its own; nothing
   // is brought in until the current version is accepted.
   function agreementPanel(version, onAgreed) {
-    var boxes = [];
     var status = h("div", { "aria-live": "polite" });
-    var fieldset = h("fieldset", { class: "mt-3" }, [
-      h("legend", { class: "sr-only", text: "Please read and agree to each of these" }),
-    ]);
-    ACKNOWLEDGEMENT.forEach(function (line, i) {
-      var box = h("input", { type: "checkbox", id: "agree-" + i, class: "mt-1 h-5 w-5 shrink-0 accent-teal" });
-      boxes.push(box);
-      fieldset.appendChild(h("div", { class: "mt-3 flex items-start gap-3" }, [box, h("label", { for: "agree-" + i, text: line })]));
-    });
+    var fields = agreementFields("agree");
+    var boxes = [fields.box];
     function unticked() {
       return boxes.some(function (b) {
         return !b.checked;
       });
     }
-    var hint = para("Tick all eight to continue.", "mt-2 font-sans text-sm text-muted");
+    var hint = para("Tick the box above to continue.", "mt-2 font-sans text-sm text-muted");
     var agree = button(
       "I agree",
       function () {
         if (unticked()) {
-          status.replaceChildren(para("Please tick each line first.", "mt-3 text-flag"));
+          status.replaceChildren(para("Please tick the box first.", "mt-3 text-flag"));
           return;
         }
         agree.disabled = true;
@@ -402,10 +490,10 @@
     return h("section", { class: "mt-4 rounded-xl border border-line bg-paper px-6 py-6" }, [
       h("h3", { class: "text-lg font-semibold", text: "Before your recordings come in" }),
       para(
-        "Please read and agree to each of these. Hearally does not bring in or transcribe any recording until you have.",
+        "Please read these. Hearally does not bring in or transcribe any recording until you agree.",
         "mt-1 max-w-[40rem] text-muted",
       ),
-      fieldset,
+      fields.node,
       h("div", { class: "mt-5" }, [agree, hint]),
       status,
     ]);
@@ -445,14 +533,12 @@
     );
 
     if (!d.acknowledged) {
-      fieldset = h("fieldset", { class: "mt-5" }, [
-        h("legend", { class: "font-semibold", text: "Before your first recording, please read and agree to each of these." }),
+      var fields = agreementFields("ack");
+      boxes = [fields.box];
+      fieldset = h("div", { class: "mt-5" }, [
+        h("p", { class: "font-semibold", text: "Before your first recording, please read these." }),
+        fields.node,
       ]);
-      ACKNOWLEDGEMENT.forEach(function (line, i) {
-        var box = h("input", { type: "checkbox", id: "ack-" + i, class: "mt-1 h-5 w-5 shrink-0 accent-teal" });
-        boxes.push(box);
-        fieldset.appendChild(h("div", { class: "mt-3 flex items-start gap-3" }, [box, h("label", { for: "ack-" + i, text: line })]));
-      });
       panel.appendChild(fieldset);
     }
 
@@ -463,7 +549,7 @@
           return !b.checked;
         });
         if (unticked) {
-          status.replaceChildren(para("Please tick each line above first.", "mt-4 text-flag"));
+          status.replaceChildren(para("Please tick the box above first.", "mt-4 text-flag"));
           return;
         }
         create.disabled = true;
@@ -1200,7 +1286,7 @@
     },
 
     preferences: function (d) {
-      return [
+      return learnedSection(d).concat([
         heading("Topics that never leave"),
         d.blocklist_topics.length
           ? list(d.blocklist_topics, function (t) {
@@ -1216,7 +1302,7 @@
         d.editing_available
           ? null
           : empty("Changing preferences is not available yet.", "These settings are shown so you know how Hearally treats your recordings today. Editing them from the dashboard is being built."),
-      ];
+      ]);
     },
 
     account: function (d) {

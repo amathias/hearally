@@ -11,6 +11,7 @@ from test_judgement import candidate
 
 from hearally.audio import incoming_key
 from hearally.judgement import CALL_TODAY, DAILY, PRIORITY, Decision
+from hearally.learning import pattern_from
 from hearally.transcription import redacted_key, transcript_key
 from hearally.worker import Batch, Collector, Dispatcher, recording_sort_key
 
@@ -122,6 +123,15 @@ class Account:
 
     def set_recording_status(self, account_id: str, sort_key: str, fields: dict[str, Any]) -> None:
         self.status.setdefault(sort_key, {}).update(fields)
+
+    def learned(self, account_id: str) -> list[dict[str, Any]]:
+        return [v for k, v in self.items.items() if k.startswith("SUPPRESSION#")]
+
+    def note_learned(self, account_id: str, pattern_id: str, at: str) -> None:
+        found = self.items.get(f"SUPPRESSION#{pattern_id}")
+        if found is not None:
+            found["matched"] = found.get("matched", 0) + 1
+            found["last_matched_at"] = at
 
 
 def transcript(event: str = EVENT) -> bytes:
@@ -256,6 +266,47 @@ class CollectorTests(unittest.TestCase):
         self.assertEqual(item["grade"], CALL_TODAY)
         self.assertEqual(self.judged_with, [False])
         self.assertFalse(any(k.startswith("ALERT#") for k in self.account.items))
+
+    def learn(self, signals: list[str], now: int = NOW) -> dict[str, Any]:
+        """As if an ally said an earlier heads-up with these signals was nothing."""
+        pattern = pattern_from(
+            {"id": "f" * 16, "category": "scam_pressure", "grade": PRIORITY, "signals": signals},
+            reason="known_caller",
+            ally={"id": "a1", "name": "Dana"},
+            now=now,
+        )
+        assert pattern is not None
+        self.account.items[f"SUPPRESSION#{pattern['id']}"] = pattern
+        return pattern
+
+    def stored(self) -> dict[str, Any]:
+        [item] = [v for k, v in self.account.items.items() if k.startswith("ITEM#")]
+        return item
+
+    def test_what_an_ally_said_was_nothing_goes_to_the_daily_list(self) -> None:
+        pattern = self.learn(["urgency", "asks_for_account_details"])
+        self.jobs.states["aijob-1"] = "COMPLETED"
+        self.collector().run()
+        item = self.stored()
+        self.assertEqual((item["grade"], item["learned"]), (DAILY, pattern["id"]))
+        # Not raised, and today's one heads-up is still unspent.
+        self.assertFalse(any(k.startswith("ALERT#") for k in self.account.items))
+        self.assertEqual(self.account.budget, set())
+        self.assertEqual(self.account.items[f"SUPPRESSION#{pattern['id']}"]["matched"], 1)
+
+    def test_a_new_element_is_passed_on_and_named(self) -> None:
+        self.learn(["asks_for_payment"])
+        self.jobs.states["aijob-1"] = "COMPLETED"
+        self.collector().run()
+        item = self.stored()
+        self.assertEqual((item["grade"], item["new_signals"]), (PRIORITY, ["urgency"]))
+        self.assertNotIn("learned", item)
+
+    def test_an_expired_pattern_teaches_nothing(self) -> None:
+        self.learn(["urgency"], now=NOW - 91 * 86400)
+        self.jobs.states["aijob-1"] = "COMPLETED"
+        self.collector().run()
+        self.assertEqual(self.stored()["grade"], PRIORITY)
 
     def test_held_back_moments_are_stored_apart(self) -> None:
         self.decisions = [

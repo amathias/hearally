@@ -11,6 +11,7 @@ from typing import Any
 from hearally.allies import (
     NOT_EMERGENCY,
     AllyLinkService,
+    AllyNotFoundError,
     AllyService,
     Deliverer,
     InMemoryAllyRepository,
@@ -150,12 +151,49 @@ class AllyLinkTests(AllyTestCase):
             with self.subTest(token=token), self.assertRaises(LinkInvalidError):
                 self.links.view(token)
 
-    def test_this_was_nothing_needs_a_known_reason(self) -> None:
+    def shown(self, entry: dict[str, Any]) -> str:
+        """A confirmed ally who can see this item; returns their token."""
+        self.clock.now = datetime(2026, 9, 30, 19, 0, tzinfo=UTC).timestamp()
         self.confirmed()
-        token = self.mailer.token()
+        self.repo.put(SUB, entry["sk"], entry)
+        return self.mailer.token()
+
+    def learned(self) -> list[dict[str, Any]]:
+        return [v for (_, sk), v in self.repo.records.items() if sk.startswith("SUPPRESSION#")]
+
+    def test_this_was_nothing_needs_a_known_reason_and_a_shown_item(self) -> None:
+        token = self.shown(item("daily"))
         self.links.dismiss(token, "0" * 15 + "1", "tv_or_radio")
         with self.assertRaises(ValidationError):
             self.links.dismiss(token, "0" * 15 + "1", "he hates it")
+        with self.assertRaises(ValidationError):
+            self.links.dismiss(token, "0" * 15 + "9", "tv_or_radio")  # not on their page
+
+    def test_this_was_nothing_on_a_heads_up_is_learned(self) -> None:
+        entry = dict(item("priority"), category="scam_pressure", signals=["urgency"])
+        token = self.shown(entry)
+        self.links.dismiss(token, entry["id"], "known_caller")
+        [pattern] = self.learned()
+        self.assertEqual(
+            (pattern["category"], pattern["signals"], pattern["reason"], pattern["ally_name"]),
+            ("scam_pressure", ["urgency"], "known_caller", "Dana"),
+        )
+
+    def test_a_daily_list_item_teaches_nothing(self) -> None:
+        token = self.shown(item("daily"))
+        self.links.dismiss(token, "0" * 15 + "1", "was_me")
+        self.assertEqual(self.learned(), [])
+
+    def test_the_account_holder_can_remove_what_was_learned(self) -> None:
+        entry = dict(item("call_today"), signals=[])
+        self.links.dismiss(self.shown(entry), entry["id"], "handled_it")
+        [pattern] = self.learned()
+        self.allies.forget(SUB, pattern["id"])
+        self.assertEqual(self.learned(), [])
+        with self.assertRaises(AllyNotFoundError):
+            self.allies.forget(SUB, pattern["id"])
+        with self.assertRaises(ValidationError):
+            self.allies.forget(SUB, "not-an-id")
 
 
 class PlanningTests(AllyTestCase):
@@ -219,6 +257,14 @@ class DeliveryTests(AllyTestCase):
         self.assertEqual((sent["ally_name"], sent["kind"]), (ally["name"], "digest"))
         self.assertEqual(deliverer.run()["sent"], 0)  # never twice
 
+    def test_a_heads_up_with_a_new_element_says_what_was_new(self) -> None:
+        self.confirmed()
+        entry = dict(item("priority"), new_signals=["secrecy"])
+        self.repo.put(SUB, entry["sk"], entry)
+        plan_deliveries(self.repo, SUB, [entry], AFTERNOON)
+        Deliverer(self.repo, self.mailer, self.clock).run()
+        self.assertIn("also asking to keep it secret", self.mailer.sent[-1]["text"])
+
     def test_an_ally_who_stopped_meanwhile_gets_nothing(self) -> None:
         self.confirmed()
         entry = item("priority")
@@ -254,6 +300,8 @@ class HandlerTests(AllyTestCase):
         self.assertNotIn("link_digest", ally)
         response = handle_manage(request("remove", {"ally_id": ally["id"]}), edge, self.allies)
         self.assertEqual(response["statusCode"], 200)
+        response = handle_manage(request("forget", {"pattern_id": "a" * 16}), edge, self.allies)
+        self.assertEqual(response["statusCode"], 404)
         self.assertEqual(
             handle_manage(request("add", {}, sub=None), edge, self.allies)["statusCode"], 401
         )

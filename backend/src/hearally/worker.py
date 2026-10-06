@@ -18,7 +18,8 @@ marked failed and their audio is left to the lifecycle rule.
 
 Product rules live in code and conditional writes, never in prompts
 (AGENTS.md): the one-a-day priority budget is a conditional put on
-``ALERTBUDGET#<date>``. Nothing here logs a transcript, a summary, a link or
+``ALERTBUDGET#<date>``, and what allies said was nothing (learning.py) is
+applied here, after the model has spoken. Nothing here logs a transcript, a summary, a link or
 anything said; the run reports counts.
 """
 
@@ -34,7 +35,9 @@ from datetime import UTC, datetime
 from typing import Any, Protocol
 
 from hearally.audio import incoming_key
-from hearally.judgement import CALL_TODAY, PRIORITY, Decision
+from hearally.judgement import CALL_TODAY, DAILY, PRIORITY, Decision
+from hearally.learning import PREFIX as LEARNED_PREFIX
+from hearally.learning import TEACHES, check
 from hearally.transcription import (
     Recording,
     parse_transcript,
@@ -140,6 +143,8 @@ class Account(Protocol):
     def set_recording_status(
         self, account_id: str, sort_key: str, fields: dict[str, Any]
     ) -> None: ...
+    def learned(self, account_id: str) -> list[dict[str, Any]]: ...
+    def note_learned(self, account_id: str, pattern_id: str, at: str) -> None: ...
 
 
 class DynamoAccount:
@@ -170,6 +175,27 @@ class DynamoAccount:
 
     def put(self, account_id: str, sort_key: str, item: dict[str, Any]) -> None:
         self._table.put_item(Item={"pk": f"USER#{account_id}", "sk": sort_key, **item})
+
+    def learned(self, account_id: str) -> list[dict[str, Any]]:
+        page = self._table.query(
+            KeyConditionExpression="pk = :pk AND begins_with(sk, :sk)",
+            ExpressionAttributeValues={":pk": f"USER#{account_id}", ":sk": LEARNED_PREFIX},
+        )
+        return list(page.get("Items", []))
+
+    def note_learned(self, account_id: str, pattern_id: str, at: str) -> None:
+        """Count a use. Never renews the pattern, and never recreates one the
+        account holder has just removed."""
+        try:
+            self._table.update_item(
+                Key={"pk": f"USER#{account_id}", "sk": f"{LEARNED_PREFIX}{pattern_id}"},
+                UpdateExpression="SET matched = if_not_exists(matched, :zero) + :one, "
+                "last_matched_at = :at",
+                ConditionExpression="attribute_exists(pk)",
+                ExpressionAttributeValues={":zero": 0, ":one": 1, ":at": at},
+            )
+        except self._table.meta.client.exceptions.ConditionalCheckFailedException:
+            return
 
     def set_recording_status(self, account_id: str, sort_key: str, fields: dict[str, Any]) -> None:
         # Only a recording the dashboard already lists; never creates one.
@@ -425,6 +451,7 @@ class Collector:
         now = int(self._clock())
         expires = now + ITEM_RETENTION_SECONDS
         spoken_at = entry["recorded_at"]
+        patterns = self._account.learned(account) if decisions else []
         for n, d in enumerate(decisions):
             item_id = hashlib.sha256(f"{entry['event_id']}:{n}".encode()).hexdigest()[:16]
             if d.outcome == "held_back":
@@ -441,6 +468,12 @@ class Collector:
                 counts["held_back"] += 1
                 continue
             grade = d.grade
+            signals = sorted(d.candidate.scam_signals)
+            # What allies said was nothing, before the budget: an item that
+            # goes to the daily list must not spend today's heads-up.
+            learned = check(patterns, d.candidate.category, signals, now)
+            if learned.pattern and grade in TEACHES:
+                grade = DAILY
             if grade == PRIORITY and not self._account.claim_priority(account, day, now):
                 grade = CALL_TODAY  # another heads-up already used today's
             item = {
@@ -449,11 +482,21 @@ class Collector:
                 "category": d.candidate.category,
                 "grade": grade,
                 "summary": d.candidate.summary,
+                "signals": signals,
                 "language": "en",
                 "ttl_epoch": expires,
             }
             if d.pattern:
                 item["named_script"] = d.pattern.pattern_id
+            if learned.pattern and d.grade in TEACHES:
+                item["learned"] = str(learned.pattern["id"])
+                self._account.note_learned(
+                    account,
+                    str(learned.pattern["id"]),
+                    datetime.fromtimestamp(now, UTC).isoformat().replace("+00:00", "Z"),
+                )
+            elif learned.new_signals and grade in TEACHES:
+                item["new_signals"] = list(learned.new_signals)
             self._account.put(account, f"ITEM#{spoken_at}#{item_id}", item)
             stored.append({**item, "sk": f"ITEM#{spoken_at}#{item_id}"})
             if grade == PRIORITY:

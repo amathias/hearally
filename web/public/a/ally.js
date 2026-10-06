@@ -168,7 +168,10 @@
         select,
         btn("Send", function () {
           call("dismiss", { item_id: item.id, reason: select.value }).then(function (r) {
-            out.replaceChildren(p(r.status === 200 ? "Thanks. Hearally will take that into account." : "That could not be saved. Please try again.", "mt-2 font-sans text-sm " + (r.status === 200 ? "text-ok" : "text-flag")));
+            var thanks = item.grade === "priority" || item.grade === "call_today"
+              ? "Thanks. Things like this will go to the daily list from now on, unless something new comes up."
+              : "Thanks, noted.";
+            out.replaceChildren(p(r.status === 200 ? thanks : "That could not be saved. Please try again.", "mt-2 font-sans text-sm " + (r.status === 200 ? "text-ok" : "text-flag")));
           }, failed);
         }),
       ]),
