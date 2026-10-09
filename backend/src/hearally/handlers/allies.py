@@ -1,7 +1,12 @@
 """Allies: managed by the account holder, and the ally's own link.
 
-    POST /v1/me/allies/{action}   signed in: add, update, remove, resend, name, forget
-    POST /v1/ally/{action}        an ally link: view, confirm, decline, stop, dismiss
+    POST /v1/me/allies/{action}   signed in: add, update, remove, resend, name, and
+                                  three preferences beside them: forget (something
+                                  learned), topics (topics that never leave), release
+                                  (send a held-back moment anyway)
+    POST /v1/ally/{action}        an ally link: view, confirm, decline, stop, dismiss,
+                                  settings, and their phone: phone (text a code),
+                                  phone_confirm, calls (on or off), phone_remove
     deliver_handler               every 10 minutes: send what is due
 
 The ally routes need no sign-in: holding a live ally link is the
@@ -13,6 +18,7 @@ revoked links all get the same answer. See hearally/allies.py.
 from __future__ import annotations
 
 import logging
+from collections.abc import Callable
 from typing import Any
 
 from hearally.allies import (
@@ -21,6 +27,7 @@ from hearally.allies import (
     AllyService,
     LinkInvalidError,
 )
+from hearally.ally_phone import AllyPhoneService
 from hearally.edge import EdgeVerificationError, EdgeVerifier
 from hearally.handlers.pairing import _json, _private, _sub
 from hearally.handlers.responses import json_response
@@ -29,8 +36,9 @@ from hearally.models import ValidationError
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 
-MANAGE = {"add", "update", "remove", "resend", "name", "forget"}
-LINK = {"view", "confirm", "decline", "stop", "dismiss"}
+MANAGE = {"add", "update", "remove", "resend", "name", "forget", "topics", "release"}
+LINK = {"view", "confirm", "decline", "stop", "dismiss", "settings"}
+PHONE = {"phone", "phone_confirm", "calls", "phone_remove"}
 MAX_BODY = 4_096
 
 
@@ -63,6 +71,13 @@ def handle_manage(
             # Something learned from "this was nothing", not an ally.
             allies.forget(sub, body.get("pattern_id"))
             return _private(json_response(200, {"done": True}))
+        if action == "topics":
+            return _private(
+                json_response(200, {"topics": allies.set_topics(sub, body.get("topics"))})
+            )
+        if action == "release":
+            allies.release(sub, body.get("id"))
+            return _private(json_response(200, {"done": True}))
         ally_id = body.pop("ally_id", None)
         if not isinstance(ally_id, str) or not ally_id:
             raise ValidationError("ally_id is required")
@@ -86,20 +101,37 @@ def handle_manage(
 
 
 def handle_link(
-    request: dict[str, Any], edge: EdgeVerifier, links: AllyLinkService
+    request: dict[str, Any],
+    edge: EdgeVerifier,
+    links: AllyLinkService,
+    phone: Callable[[], AllyPhoneService] | None = None,
 ) -> dict[str, Any]:
     try:
         edge.verify(request.get("headers") or {})
     except EdgeVerificationError:
         return json_response(403, {"error": "forbidden"})
     action = (request.get("pathParameters") or {}).get("action")
-    if action not in LINK:
+    if action not in LINK | PHONE:
         return json_response(404, {"error": "not_found"})
     try:
         body = _json(request, limit=MAX_BODY)
         token = body.get("token")
+        if action in PHONE:
+            if phone is None:
+                return json_response(503, {"error": "temporarily_unavailable"})
+            service = phone()
+            if action == "phone":
+                return _private(json_response(200, service.start(token, body.get("phone"))))
+            if action == "phone_confirm":
+                return _private(json_response(200, service.confirm(token, body.get("code"))))
+            if action == "calls":
+                return _private(json_response(200, service.set_calls(token, body.get("on"))))
+            service.remove(token)
+            return _private(json_response(200, {"done": True}))
         if action == "view":
             return _private(json_response(200, links.view(token)))
+        if action == "settings":
+            return _private(json_response(200, links.settings(token, body.get("settings"))))
         if action == "dismiss":
             links.dismiss(token, body.get("item_id"), body.get("reason"))
         elif action == "confirm":
@@ -120,6 +152,7 @@ def handle_link(
 
 _manage: tuple[EdgeVerifier, AllyService] | None = None
 _link: tuple[EdgeVerifier, AllyLinkService] | None = None
+_phone: AllyPhoneService | None = None
 
 
 def manage_handler(event: dict[str, Any], context: Any) -> dict[str, Any]:
@@ -139,7 +172,18 @@ def link_handler(event: dict[str, Any], context: Any) -> dict[str, Any]:
         from hearally.factory import build_ally_link_service, build_edge_verifier
 
         _link = (build_edge_verifier(), build_ally_link_service())
-    return handle_link(event, *_link)
+    edge, links = _link
+
+    def phone() -> AllyPhoneService:
+        # Built on first use: viewing a page needs no texting set up.
+        global _phone
+        if _phone is None:
+            from hearally.factory import build_ally_phone_service
+
+            _phone = build_ally_phone_service(links)
+        return _phone
+
+    return handle_link(event, edge, links, phone)
 
 
 def deliver_handler(event: dict[str, Any], context: Any) -> dict[str, int]:

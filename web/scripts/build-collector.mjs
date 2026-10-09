@@ -2,7 +2,7 @@
 //
 // The collector is several small modules with no dependencies. Bundled, it is
 // a single file that runs with `node hearally-collector.mjs setup`: nothing to
-// unzip, no repository, no package manager. See /setup/.
+// unzip, no repository, no package manager. See /setup/collector/.
 //
 // Runs in `npm run build`, so the download always matches the source, and CI
 // fails if a committed copy is stale.

@@ -20,14 +20,14 @@
     Lambdas pick up a new value within five minutes (see secret_cache.py).
 
 .PARAMETER Secret
-    Which secret to set: Nebius, Tavily or Twilio. Omit to be asked.
+    Which secret to set: Nebius, Tavily, Twilio or CallE. Omit to be asked.
 
 .EXAMPLE
     ./scripts/set-secrets.ps1 -Secret Nebius
 #>
 [CmdletBinding()]
 param(
-    [ValidateSet('Nebius', 'Tavily', 'Twilio')]
+    [ValidateSet('Nebius', 'Tavily', 'Twilio', 'CallE')]
     [string]$Secret,
 
     [string]$Region = 'us-east-1',
@@ -43,10 +43,12 @@ if (-not $Secret) {
     Write-Host '  1. Nebius  - Token Factory API key, for Nemotron'
     Write-Host '  2. Tavily  - search API key, for the weekly scam-library refresh'
     Write-Host '  3. Twilio  - account SID and auth token'
-    switch (Read-Host 'Enter 1, 2 or 3') {
+    Write-Host '  4. CallE   - CALL-E API key, for heads-up calls to allies'
+    switch (Read-Host 'Enter 1, 2, 3 or 4') {
         '1' { $Secret = 'Nebius' }
         '2' { $Secret = 'Tavily' }
         '3' { $Secret = 'Twilio' }
+        '4' { $Secret = 'CallE' }
         default { throw 'Nothing chosen.' }
     }
 }
@@ -92,6 +94,12 @@ switch ($Secret) {
         $token = Read-Secret 'Twilio Auth Token'
         $payload = ConvertTo-Json @{ account_sid = $sid; auth_token = $token } -Compress
         Set-SecretValue -Name "$Prefix/twilio" -Value $payload
+    }
+
+    'CallE' {
+        $key = Read-Secret 'CALL-E API key'
+        $payload = ConvertTo-Json @{ api_key = $key } -Compress
+        Set-SecretValue -Name "$Prefix/calle" -Value $payload
     }
 }
 

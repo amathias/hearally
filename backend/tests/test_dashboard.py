@@ -132,6 +132,16 @@ class DashboardContentTests(unittest.TestCase):
         [ally] = section("people", SUB, {}, reader)["allies"]
         self.assertEqual(ally, {"id": "a1", "name": "Dana"})
 
+    def test_people_shows_this_months_calls_of_the_limit(self) -> None:
+        import time
+
+        from hearally.calls import MONTHLY_CALLS, month
+
+        reader = FakeReader()
+        reader.items[(SUB, f"CALLBUDGET#{month(time.time())}")] = {"used": Decimal(2)}
+        calls = section("people", SUB, {}, reader)["calls"]
+        self.assertEqual(calls, {"used": 2, "limit": MONTHLY_CALLS})
+
     def test_paired_computers_are_listed_without_their_credential(self) -> None:
         reader = FakeReader(
             {
@@ -224,7 +234,7 @@ class DashboardContentTests(unittest.TestCase):
         for capability in CAPABILITIES:
             with self.subTest(capability=capability["id"]):
                 self.assertIn(
-                    capability["status"], {"available", "testing", "in_progress", "not_yet"}
+                    capability["status"], {"available", "preview", "in_progress", "not_yet"}
                 )
                 self.assertTrue(capability["detail"])
 

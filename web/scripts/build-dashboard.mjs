@@ -114,7 +114,7 @@ function nav(current) {
   return `<nav id="dashboard-nav" aria-label="Dashboard" class="hidden border-b border-line bg-sand px-3 pb-4 md:block md:w-60 md:shrink-0 md:border-b-0 md:border-r md:pb-8 md:pt-6">
         <p id="nav-signed-in-as" class="hidden break-all px-3 pt-4 font-sans text-sm text-muted md:hidden"></p>
         ${groups}
-        <p class="mt-8 px-3 font-sans text-xs text-muted"><a href="/terms/" class="underline underline-offset-4">Terms</a> · <a href="/privacy/" class="underline underline-offset-4">Privacy</a> · <a href="mailto:info@email.famplified.com" class="underline underline-offset-4">Contact</a></p>
+        <p class="mt-8 px-3 font-sans text-sm text-muted"><a href="/setup/" class="inline-block py-2 underline underline-offset-4">Guide</a> · <a href="/terms/" class="inline-block py-2 underline underline-offset-4">Terms</a> · <a href="/privacy/" class="inline-block py-2 underline underline-offset-4">Privacy</a> · <a href="mailto:info@email.famplified.com" class="inline-block py-2 underline underline-offset-4">Contact</a></p>
       </nav>`;
 }
 
@@ -132,8 +132,8 @@ function page(id) {
   <span class="ml-2 hidden rounded bg-ink-2 px-2 py-0.5 font-sans text-xs font-semibold text-muted-dark sm:inline">Public preview (beta)</span>
   <div class="ml-auto flex min-w-0 items-center gap-3">
     <span class="hidden min-w-0 max-w-[26rem] truncate font-sans text-sm text-muted-dark sm:block"><span id="signed-in-as" class="hidden"></span></span>
-    <button id="sign-out" type="button" hidden class="rounded-md border border-line-dark px-3 py-1.5 font-sans text-sm font-semibold text-sand hover:bg-ink-2">Sign out</button>
-    <button id="menu-toggle" type="button" aria-expanded="false" aria-controls="dashboard-nav" class="rounded-md border border-line-dark px-3 py-1.5 font-sans text-sm font-semibold text-sand hover:bg-ink-2 md:hidden">Menu</button>
+    <button id="sign-out" type="button" hidden class="rounded-md border border-line-dark px-3 py-2.5 font-sans text-sm font-semibold text-sand hover:bg-ink-2">Sign out</button>
+    <button id="menu-toggle" type="button" aria-expanded="false" aria-controls="dashboard-nav" class="rounded-md border border-line-dark px-3 py-2.5 font-sans text-sm font-semibold text-sand hover:bg-ink-2 md:hidden">Menu</button>
   </div>
 </header>
 
@@ -151,6 +151,7 @@ function page(id) {
 
 <script src="/dashboard/config.js"></script>
 <script src="/dashboard/app.js"></script>
+<script src="/analytics.js" defer></script>
 </body>
 </html>
 `;
@@ -165,6 +166,7 @@ function bare(title, body, section) {
 </main>
 <script src="/dashboard/config.js"></script>
 <script src="/dashboard/app.js"></script>
+<script src="/analytics.js" defer></script>
 </body>
 </html>
 `;

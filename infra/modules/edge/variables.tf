@@ -34,6 +34,12 @@ variable "secret_name_prefix" {
   type        = string
 }
 
+variable "media_origins" {
+  description = "Origins the dashboard may play audio from: the silenced copies' signed links."
+  type        = list(string)
+  default     = []
+}
+
 variable "sign_in_origin" {
   description = "Origin of the Cognito hosted UI, which the dashboard calls to exchange sign-in codes for tokens."
   type        = string

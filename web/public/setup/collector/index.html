@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Use a computer instead — Hearally</title>
+<meta name="description" content="Send your Plaud recordings to Hearally from a computer with the Hearally collector, step by step.">
+<link rel="canonical" href="https://hearally.com/setup/collector/">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&amp;family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/styles.css?v=62cc5f6cc1">
+<script src="/setup/setup.js?v=a56de02134" defer></script>
+</head>
+<body>
+
+<header class="bg-ink">
+  <div class="mx-auto flex max-w-3xl items-center gap-3 px-6 py-6">
+    <a href="/" class="font-sans text-2xl font-bold tracking-tight text-amber no-underline">hearally</a>
+    <span class="rounded bg-ink-2 px-2 py-0.5 font-sans text-xs font-semibold text-muted-dark">Public preview (beta)</span>
+  </div>
+</header>
+
+<main class="mx-auto max-w-3xl px-6 py-14">
+  <p class="font-sans text-sm"><a href="/setup/" class="font-semibold text-teal underline underline-offset-4">&larr; Getting started</a></p>
+  <h1 class="mt-4 text-[2.25rem] font-semibold leading-tight">Use a computer instead</h1>
+  <p class="mt-4 text-lg text-muted">Send recordings from a computer with the Hearally collector, one step at a time. It takes about fifteen minutes.</p>
+
+  <div class="mt-10 border-l-2 border-teal pl-6">
+    <h2 class="text-xl font-semibold">Hearally is in public preview (beta)</h2>
+    <p class="mt-3 text-muted">During the preview Hearally is free and we do not collect payment details; you will be told well in advance before that changes. <span class="font-semibold text-ink">What works today:</span> connecting your Plaud or a computer, and recordings being transcribed, with what is worth passing on shown as summaries in your dashboard. <span class="font-semibold text-ink">By email:</span> allies, and what reaches them. <span class="font-semibold text-ink">Not part of the preview:</span> text messages.</p>
+  </div>
+
+  <div class="mt-10 rounded-xl border border-line bg-paper px-6 py-5">
+    <h2 class="text-xl font-semibold">Most people do not need this</h2>
+    <p class="mt-2 text-muted">The usual way is to sign in to Plaud once from your dashboard: new recordings then come in by themselves, with no computer. <a href="/setup/" class="font-semibold text-teal underline underline-offset-4">Getting started</a> shows how.</p>
+  </div>
+
+  <p class="mt-10">This guide is the other way: a small program called the <span class="font-semibold">Hearally collector</span> runs on your computer. It watches one folder, and sends each new recording you save there to your Hearally account. You connect it to your account once, with a pairing code, and after that it checks every 15 minutes on its own. Use it if you would rather not sign in to Plaud from Hearally, or if you export recordings from Plaud yourself.</p>
+
+  <div id="wizard" class="mt-12">
+    <!-- setup.js turns these into one step at a time, with Next and Back. Without JavaScript, every step shows. -->
+    <div id="wizard-progress" class="hidden" aria-live="polite"></div>
+
+    <section class="step mt-12" id="step-1" aria-labelledby="step-1-title">
+      <h2 id="step-1-title" class="text-2xl font-semibold" tabindex="-1">1. Check you have what you need</h2>
+      <ul class="mt-4 list-disc space-y-3 pl-6">
+        <li><span class="font-semibold">A Plaud recorder</span>, with its app on your phone and a Plaud account. To hear phone calls, a <span class="font-semibold">Plaud Note or Note Pro</span>; a NotePin records the room only. See <a href="/#plaud" class="font-semibold text-teal underline underline-offset-4">which Plaud is right for you</a>.</li>
+        <li><span class="font-semibold">A Hearally account.</span> <a href="/dashboard/" class="font-semibold text-teal underline underline-offset-4">Sign in or create one</a>. It is free during the preview.</li>
+        <li><span class="font-semibold">A Windows or Mac computer</span> that is on when you want recordings sent. Linux works too.</li>
+        <li>About <span class="font-semibold">fifteen minutes</span>.</li>
+      </ul>
+    </section>
+
+    <section class="step mt-12" id="step-2" aria-labelledby="step-2-title">
+      <h2 id="step-2-title" class="text-2xl font-semibold" tabindex="-1">2. Install Node.js</h2>
+      <p class="mt-4">The collector runs on Node.js, a free program. Go to <a href="https://nodejs.org/" rel="noopener" class="font-semibold text-teal underline underline-offset-4">nodejs.org</a>, download the version marked <span class="font-semibold">LTS</span>, and click through the installer, accepting what it suggests.</p>
+      <p class="mt-4 text-muted">Already have it? It needs to be version 22 or newer. You can check in step 5 by typing <span class="font-mono text-[15px] text-ink">node --version</span>.</p>
+    </section>
+
+    <section class="step mt-12" id="step-3" aria-labelledby="step-3-title">
+      <h2 id="step-3-title" class="text-2xl font-semibold" tabindex="-1">3. Download the collector</h2>
+      <p class="mt-4">It is one small file. Your browser saves it to your <span class="font-semibold">Downloads</span> folder. Leave it there.</p>
+      <p class="mt-6"><a href="/collector/hearally-collector.mjs" download class="inline-block rounded-lg bg-ink px-7 py-3.5 font-sans text-[17px] font-semibold text-sand no-underline transition hover:brightness-125">Download the collector</a></p>
+      <p class="mt-4 text-muted">It is plain, readable text rather than an app, so anyone can check what it does. It is open source, under the MIT licence.</p>
+    </section>
+
+    <section class="step mt-12" id="step-4" aria-labelledby="step-4-title">
+      <h2 id="step-4-title" class="text-2xl font-semibold" tabindex="-1">4. Get a pairing code</h2>
+      <p class="mt-4">A pairing code connects this computer to your Hearally account, once.</p>
+      <ol class="mt-4 list-decimal space-y-3 pl-6">
+        <li>Open your <a href="/dashboard/integrations/" target="_blank" rel="noopener" class="font-semibold text-teal underline underline-offset-4">dashboard's Integrations page</a>, signing in if asked. It opens in a new tab, so this guide stays here.</li>
+        <li>Under <span class="font-semibold">Connect a computer</span>, the first time only, read the four short points and tick the box to agree. They include that you will only record conversations you have the legal right to record.</li>
+        <li>Click <span class="font-semibold">Create a pairing code</span>, then <span class="font-semibold">Copy</span>.</li>
+      </ol>
+      <p class="mt-4 text-muted">A code works once, for ten minutes. It works like a password, so do not share it. If it runs out, just make another: setup will ask for it again without starting over.</p>
+    </section>
+
+    <section class="step mt-12" id="step-5" aria-labelledby="step-5-title">
+      <h2 id="step-5-title" class="text-2xl font-semibold" tabindex="-1">5. Open a command window</h2>
+      <div class="mt-5 grid gap-6 sm:grid-cols-2">
+        <div>
+          <h3 class="text-lg font-semibold">Windows</h3>
+          <p class="mt-2">Open the Start menu, type <span class="font-semibold">PowerShell</span>, and click <span class="font-semibold">Windows PowerShell</span>.</p>
+          <p class="mt-2 text-muted">Open it normally. <span class="font-semibold text-ink">Do not</span> choose "Run as administrator": it is not needed, and the collector's schedule is best set up as you.</p>
+        </div>
+        <div>
+          <h3 class="text-lg font-semibold">Mac</h3>
+          <p class="mt-2">Open <span class="font-semibold">Terminal</span>: in Finder, Applications, then Utilities. Or press Command and Space, type <span class="font-semibold">Terminal</span>, and press Return.</p>
+        </div>
+      </div>
+      <p class="mt-5 text-muted">A window opens where you can type. That is all you need it for: one command in the next step.</p>
+    </section>
+
+    <section class="step mt-12" id="step-6" aria-labelledby="step-6-title">
+      <h2 id="step-6-title" class="text-2xl font-semibold" tabindex="-1">6. Run setup</h2>
+      <p class="mt-4">Type this line exactly, then press Enter. It works whichever folder the window opened in.</p>
+      <div class="mt-5 space-y-5">
+        <div>
+          <h3 class="text-lg font-semibold">Windows</h3>
+          <pre class="mt-3 overflow-x-auto rounded-lg bg-ink px-5 py-4 font-mono text-[14px] leading-relaxed text-sand"><code>node $HOME\Downloads\hearally-collector.mjs setup</code></pre>
+        </div>
+        <div>
+          <h3 class="text-lg font-semibold">Mac</h3>
+          <pre class="mt-3 overflow-x-auto rounded-lg bg-ink px-5 py-4 font-mono text-[14px] leading-relaxed text-sand"><code>node ~/Downloads/hearally-collector.mjs setup</code></pre>
+        </div>
+      </div>
+      <p class="mt-6">Setup asks a few questions, one at a time. Type the answer and press Enter:</p>
+      <div class="mt-4 overflow-x-auto">
+        <table class="w-full border-y border-line text-left">
+          <thead>
+            <tr class="border-b border-line font-sans text-sm text-muted">
+              <th class="py-2 pr-4 font-semibold">It asks</th>
+              <th class="py-2 font-semibold">You type</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-line">
+            <tr><td class="py-3 pr-4">Paste your pairing code</td><td class="py-3">Paste the code from step 4: right-click in the window, or press Ctrl+V (Command+V on a Mac)</td></tr>
+            <tr><td class="py-3 pr-4">Which Plaud do you have?</td><td class="py-3"><span class="font-semibold">1</span> Note, <span class="font-semibold">2</span> Note Pro, <span class="font-semibold">3</span> NotePin, <span class="font-semibold">4</span> NotePin S. This only describes your Plaud; nothing connects to the recorder itself</td></tr>
+            <tr><td class="py-3 pr-4">What will you use it for?</td><td class="py-3">Only for a Note or Note Pro: <span class="font-semibold">1</span> phone calls, <span class="font-semibold">2</span> conversations in the room, <span class="font-semibold">3</span> both</td></tr>
+            <tr><td class="py-3 pr-4">Do you have a second Plaud as well?</td><td class="py-3">Just press Enter for no. Type <span class="font-semibold">y</span> only if you own another one</td></tr>
+            <tr><td class="py-3 pr-4">Press Enter to use this folder</td><td class="py-3">Press Enter. It makes a folder called <span class="font-semibold">Hearally recordings</span> in your home folder</td></tr>
+            <tr><td class="py-3 pr-4">Send new recordings automatically every 15 minutes?</td><td class="py-3">Press Enter for yes</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="mt-6">It then connects this computer to your account. You should see, at the end:</p>
+      <pre class="mt-3 overflow-x-auto rounded-lg bg-ink px-5 py-4 font-mono text-[14px] leading-relaxed text-sand"><code>Connecting "YOUR-COMPUTER" to your Hearally account...
+  Connected.
+...
+Set up. "YOUR-COMPUTER" is listed in your dashboard.</code></pre>
+      <p class="mt-4 text-muted">If it says <span class="font-semibold text-ink">"That code has expired or was already used"</span>, make a new code on the dashboard, copy it, and paste it into the same window. Your other answers are kept.</p>
+      <p class="mt-4 text-muted">On the dashboard, click <span class="font-semibold text-ink">I have finished setup</span>: your computer appears under <span class="font-semibold text-ink">How recordings reach Hearally</span>. The button appears once you have created a pairing code.</p>
+    </section>
+
+    <section class="step mt-12" id="step-7" aria-labelledby="step-7-title">
+      <h2 id="step-7-title" class="text-2xl font-semibold" tabindex="-1">7. Get recordings off your Plaud</h2>
+      <p class="mt-4">Recordings start on the Plaud itself. The Plaud app on your phone copies them into your Plaud account.</p>
+      <ol class="mt-4 list-decimal space-y-3 pl-6">
+        <li>Make a recording on your Plaud, if you have not already.</li>
+        <li>Open the <span class="font-semibold">Plaud app</span> on your phone, with the Plaud nearby and switched on. It connects by Bluetooth and starts <span class="font-semibold">Transferring recordings</span> by itself.</li>
+        <li>Tap <span class="font-semibold">Fast transfer</span> if it offers it: it is much quicker.</li>
+        <li>Wait until the transfer finishes and your recordings are listed.</li>
+      </ol>
+    </section>
+
+    <section class="step mt-12" id="step-8" aria-labelledby="step-8-title">
+      <h2 id="step-8-title" class="text-2xl font-semibold" tabindex="-1">8. Save a recording's audio into your folder</h2>
+      <p class="mt-4">On your computer:</p>
+      <ol class="mt-4 list-decimal space-y-3 pl-6">
+        <li>Go to <a href="https://web.plaud.ai" rel="noopener" target="_blank" class="font-semibold text-teal underline underline-offset-4">web.plaud.ai</a> and sign in with the same Plaud account as your phone.</li>
+        <li>Click a recording's <span class="font-semibold">title</span> to open it. (The <span class="font-semibold">⋯</span> menu in the list only renames and moves files.)</li>
+        <li>At the top right, click <span class="font-semibold">Copy &amp; export</span>: the page-with-an-arrow icon just right of <span class="font-semibold">Share</span>. Choose the <span class="font-semibold">audio</span>, not the transcript or summary.</li>
+        <li>The audio opens in a player in a new tab. Click the <span class="font-semibold">⋮</span> on the right of the player, then <span class="font-semibold">Download</span>. A file ending in <span class="font-mono text-[15px]">.ogg</span> or <span class="font-mono text-[15px]">.mp3</span> lands in your Downloads folder.</li>
+        <li>Move that file into your <span class="font-semibold">Hearally recordings</span> folder: in File Explorer (or Finder), drag it from Downloads into <span class="font-mono text-[15px]">Hearally recordings</span>, in your home folder.</li>
+      </ol>
+      <p class="mt-4 text-muted">Hearally takes audio (OGG, MP3, M4A, WAV, Opus, FLAC), not transcripts. Long recordings are fine: a five-hour recording is about 70 MB and uploads in seconds on a normal connection.</p>
+    </section>
+
+    <section class="step mt-12" id="step-9" aria-labelledby="step-9-title">
+      <h2 id="step-9-title" class="text-2xl font-semibold" tabindex="-1">9. Check it arrived</h2>
+      <p class="mt-4">The collector checks the folder every 15 minutes. To send straight away instead, type the same kind of line as in step 6, with <span class="font-semibold">send</span> at the end:</p>
+      <div class="mt-4 space-y-5">
+        <div>
+          <h3 class="text-lg font-semibold">Windows</h3>
+          <pre class="mt-3 overflow-x-auto rounded-lg bg-ink px-5 py-4 font-mono text-[14px] leading-relaxed text-sand"><code>node $HOME\Downloads\hearally-collector.mjs send</code></pre>
+        </div>
+        <div>
+          <h3 class="text-lg font-semibold">Mac</h3>
+          <pre class="mt-3 overflow-x-auto rounded-lg bg-ink px-5 py-4 font-mono text-[14px] leading-relaxed text-sand"><code>node ~/Downloads/hearally-collector.mjs send</code></pre>
+        </div>
+      </div>
+      <p class="mt-4">You should see the file's name, then <span class="font-mono text-[15px]">sent 1, already sent 0, … failed 0</span>. Wait 30 seconds after moving a file: one that has only just arrived is left until next time, in case it is still being copied.</p>
+      <p class="mt-6">Then look at your <a href="/dashboard/integrations/" class="font-semibold text-teal underline underline-offset-4">dashboard's Integrations page</a>:</p>
+      <ul class="mt-3 list-disc space-y-2 pl-6">
+        <li>Under <span class="font-semibold">How recordings reach Hearally</span>, your computer shows when it last sent something.</li>
+        <li>Under <span class="font-semibold">Recordings received</span>, the recording you sent is listed.</li>
+      </ul>
+      <p class="mt-4">For a fuller check at any time, use <span class="font-semibold">status</span> in place of send. It confirms the computer is still connected and lists recent activity.</p>
+      <p class="mt-4 text-muted">Recordings are transcribed about every half hour, and anything worth passing on appears under Summaries, usually within an hour. From now on, save new recordings into the folder the same way, and they are sent within 15 minutes while the computer is on.</p>
+    </section>
+
+    <div id="wizard-nav" class="hidden"></div>
+  </div>
+
+  <h2 class="mt-20 text-2xl font-semibold">If something goes wrong</h2>
+  <dl class="mt-4 border-t border-line">
+    <div class="border-b border-line py-4">
+      <dt class="font-semibold">&ldquo;node is not recognized&rdquo; or &ldquo;command not found: node&rdquo;</dt>
+      <dd class="mt-1 text-muted">Node.js is not installed yet, or the window was already open when you installed it. Install it (step 2), close the window, and open a new one.</dd>
+    </div>
+    <div class="border-b border-line py-4">
+      <dt class="font-semibold">&ldquo;Cannot find module&rdquo;</dt>
+      <dd class="mt-1 text-muted">Check you typed the line from step 6 exactly, including <span class="font-mono text-[14px] text-ink">$HOME</span> on Windows or <span class="font-mono text-[14px] text-ink">~</span> on a Mac. If it still fails, your browser may have saved the file under a slightly different name, such as <span class="font-mono text-[14px] text-ink">hearally-collector (1).mjs</span>: look in Downloads and use that name, in quotes.</dd>
+    </div>
+    <div class="border-b border-line py-4">
+      <dt class="font-semibold">The window says it is running as administrator</dt>
+      <dd class="mt-1 text-muted">Setup warns about this and carries on, so it will still work. For the tidiest setup, close the window and open PowerShell from the Start menu without "Run as administrator".</dd>
+    </div>
+    <div class="border-b border-line py-4">
+      <dt class="font-semibold">&ldquo;That is not a pairing code&rdquo;</dt>
+      <dd class="mt-1 text-muted">Part of the code was missed. Use the <span class="font-semibold text-ink">Copy</span> button on the dashboard, then paste.</dd>
+    </div>
+    <div class="border-b border-line py-4">
+      <dt class="font-semibold">&ldquo;That code has expired or was already used&rdquo;</dt>
+      <dd class="mt-1 text-muted">Codes last ten minutes and work once. Make a new one and paste it into the same window; setup keeps your other answers.</dd>
+    </div>
+    <div class="border-b border-line py-4">
+      <dt class="font-semibold">Plaud's export gave me a text file</dt>
+      <dd class="mt-1 text-muted">That is the transcript, which Hearally does not use. Go back to Copy &amp; export and choose the audio (step 8).</dd>
+    </div>
+    <div class="border-b border-line py-4">
+      <dt class="font-semibold">&ldquo;This computer is no longer connected to your Hearally account&rdquo;</dt>
+      <dd class="mt-1 text-muted">It was disconnected in your dashboard. To connect it again, make a new pairing code and run setup.</dd>
+    </div>
+    <div class="border-b border-line py-4">
+      <dt class="font-mono text-[15px] font-semibold">skip … still_arriving</dt>
+      <dd class="mt-1 text-muted">The file arrived less than 30 seconds ago. It is sent next time.</dd>
+    </div>
+    <div class="border-b border-line py-4">
+      <dt class="font-mono text-[15px] font-semibold">failed … HTTP 5xx or 429</dt>
+      <dd class="mt-1 text-muted">A temporary problem on our side. Nothing is lost: the recording is tried again next time.</dd>
+    </div>
+    <div class="border-b border-line py-4">
+      <dt class="font-mono text-[15px] font-semibold">folder unavailable: ENOENT</dt>
+      <dd class="mt-1 text-muted">The recordings folder was moved or deleted. Put it back, or run setup again.</dd>
+    </div>
+  </dl>
+
+  <h2 class="mt-14 text-2xl font-semibold">More than one Plaud, or more than one computer</h2>
+  <p class="mt-4">Answer <span class="font-semibold">y</span> when setup asks about a second Plaud. Each gets its own folder inside Hearally recordings, such as <span class="font-semibold">Note Pro</span> and <span class="font-semibold">NotePin</span>, because a recording file does not say which device made it. Save each Plaud's recordings into its own folder.</p>
+  <p class="mt-4">For another computer, make a new pairing code for it. Each computer is listed separately in your dashboard.</p>
+
+  <h2 class="mt-14 text-2xl font-semibold">Stopping</h2>
+  <p class="mt-4"><span class="font-semibold">From your dashboard:</span> choose <span class="font-semibold">Disconnect</span> next to the computer. It stops sending at once, even if you no longer have the computer.</p>
+  <p class="mt-4"><span class="font-semibold">On the computer:</span> to remove the collector completely, use the line from step 6 with <span class="font-semibold">uninstall</span> at the end. It removes the schedule, the connection details and the collector's own copy. Your recordings are left where they are.</p>
+  <p class="mt-6 text-muted">Developers can run the collector from source instead; see the <a href="https://github.com/amathias/hearally/tree/main/collector" rel="noopener" class="font-semibold text-teal underline underline-offset-4">collector README</a>.</p>
+
+  <h2 class="mt-14 text-2xl font-semibold">Before you record</h2>
+  <p class="mt-4">Only record conversations you have the legal right to record. Some places, including several US states, require everyone taking part, on phone calls too, to agree to being recorded first. You are responsible for what you record and send.</p>
+
+  <div class="mt-14 border-l-2 border-flag pl-6 text-muted">
+    <p>Hearally passes along things that were mentioned out loud. It is <strong class="text-ink">not an emergency service</strong> and <strong class="text-ink">not a medical device</strong>. It may miss things. <strong class="text-ink">In an emergency, call 911.</strong></p>
+  </div>
+</main>
+
+<footer class="bg-ink py-10 text-[15px] text-muted-dark">
+  <div class="mx-auto max-w-3xl px-6">
+    <p>© 2026 Hearally · Public preview (beta) · <a href="/" class="underline decoration-muted-dark/40 underline-offset-4 hover:decoration-muted-dark">hearally.com</a> · <a href="/setup/" class="underline decoration-muted-dark/40 underline-offset-4 hover:decoration-muted-dark">Getting started</a> · <a href="/terms/" class="underline decoration-muted-dark/40 underline-offset-4 hover:decoration-muted-dark">Terms</a> · <a href="/privacy/" class="underline decoration-muted-dark/40 underline-offset-4 hover:decoration-muted-dark">Privacy</a> · <a href="mailto:info@email.famplified.com" class="underline decoration-muted-dark/40 underline-offset-4 hover:decoration-muted-dark">Contact</a></p>
+  </div>
+</footer>
+
+<script src="/analytics.js?v=462a74c892" defer></script>
+</body>
+</html>

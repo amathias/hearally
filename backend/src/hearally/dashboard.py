@@ -14,8 +14,12 @@ Where nothing has been saved, the response says so. There is no sample data.
 
 from __future__ import annotations
 
+import time
 from collections.abc import Mapping
 from typing import Any, Protocol
+
+from hearally.calls import MONTHLY_CALLS
+from hearally.calls import month as calls_month
 
 SECTIONS = frozenset(
     {"overview", "activity", "summaries", "people", "integrations", "preferences", "account"}
@@ -54,13 +58,24 @@ _FIELDS: Mapping[str, frozenset[str]] = {
             "first",
             "invited_at",
             "confirmed_at",
+            # The ally's own schedule, set on their page.
+            "timezone",
+            "quiet_start",
+            "quiet_end",
+            "digest_time",
+            # Heads-up calls: whether they chose them, and the last four
+            # digits of the number they proved. Never the number itself.
+            "calls",
+            "phone_last4",
+            "phone_verified_at",
         }
     ),
     # A Plaud recorder, noted as its recordings arrive.
     "DEVICE#": frozenset({"id", "model", "label", "last_seen_at", "recordings"}),
     # A paired computer. Never its credential digest.
     "COMPUTER#": frozenset({"id", "name", "status", "paired_at", "last_seen_at"}),
-    "HELDBACK#": frozenset({"id", "spoken_at", "reason"}),
+    # Shown to the account holder alone, who can send it anyway.
+    "HELDBACK#": frozenset({"id", "spoken_at", "reason", "category", "summary"}),
     # A received recording: when, how long, how it came, where it has got to.
     "RECORDING#": frozenset(
         {
@@ -75,6 +90,8 @@ _FIELDS: Mapping[str, frozenset[str]] = {
             "items",
             "held_back",
             "transcribed_at",
+            # Whether a silenced copy exists to listen to. Never its key.
+            "redacted",
         }
     ),
 }
@@ -87,9 +104,10 @@ CAPABILITIES: tuple[dict[str, str], ...] = (
     {
         "id": "plaud",
         "name": "Plaud sign-in",
-        "status": "testing",
+        "status": "preview",
         "detail": "Sign in to Plaud under Integrations, and new recordings come in about every "
-        "15 minutes with no computer. New, and still being tested.",
+        "15 minutes with no computer. A preview: Plaud has not yet published terms for "
+        "services like Hearally using it.",
     },
     {
         "id": "collector",
@@ -118,7 +136,8 @@ CAPABILITIES: tuple[dict[str, str], ...] = (
         "name": "Messages to allies",
         "status": "available",
         "detail": "By email: a heads-up at once, worth a call today to your first ally, "
-        "and a daily list. Text messages are not part of the preview.",
+        "and a daily list. An ally can also choose a phone call for heads-ups, up to 10 "
+        "calls a month. Text messages are not part of the preview.",
     },
     {
         "id": "learning",
@@ -200,9 +219,12 @@ def section(
         }
     if name == "people":
         profile = reader.get(sub, "PROFILE") or {}
+        budget = reader.get(sub, f"CALLBUDGET#{calls_month(time.time())}") or {}
         return {
             "allies": _records(reader, sub, "ALLY#"),
             "display_name": str(profile.get("display_name", "")),
+            # Heads-up calls this calendar month (UTC), of the preview's limit.
+            "calls": {"used": int(_plain(budget.get("used", 0))), "limit": MONTHLY_CALLS},
         }
     if name == "integrations":
         return {

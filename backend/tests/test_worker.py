@@ -124,6 +124,9 @@ class Account:
     def set_recording_status(self, account_id: str, sort_key: str, fields: dict[str, Any]) -> None:
         self.status.setdefault(sort_key, {}).update(fields)
 
+    def topics(self, account_id: str) -> list[str]:
+        return list(self.items.get("BLOCKLIST", {}).get("topics", []))
+
     def learned(self, account_id: str) -> list[dict[str, Any]]:
         return [v for k, v in self.items.items() if k.startswith("SUPPRESSION#")]
 
@@ -248,6 +251,8 @@ class CollectorTests(unittest.TestCase):
         self.assertIn(redacted_key(ACCOUNT, EVENT), self.s3.objects)
         status = self.account.status[recording_sort_key(message())]
         self.assertEqual((status["status"], status["items"]), ("transcribed", 1))
+        # Noted, so the account holder can listen to the silenced copy.
+        self.assertEqual((status["redacted"], status["event_id"]), (True, EVENT))
         self.assertEqual(self.batches.open_batches(), [])
         self.assertFalse(any(k.startswith("jobs/") for k in self.s3.objects))
 
@@ -257,6 +262,7 @@ class CollectorTests(unittest.TestCase):
         self.collector().run()
         self.assertIn(incoming_key(ACCOUNT, EVENT), self.s3.objects)
         self.assertNotIn(transcript_key(ACCOUNT, EVENT), self.s3.objects)
+        self.assertNotIn("redacted", self.account.status[recording_sort_key(message())])
 
     def test_the_daily_priority_budget_is_enforced_in_code(self) -> None:
         self.account.budget.add("2026-09-30")
@@ -307,6 +313,23 @@ class CollectorTests(unittest.TestCase):
         self.jobs.states["aijob-1"] = "COMPLETED"
         self.collector().run()
         self.assertEqual(self.stored()["grade"], PRIORITY)
+
+    def test_a_named_topic_is_held_back_but_never_a_pressuring_call(self) -> None:
+        self.account.items["BLOCKLIST"] = {"topics": ["dentist"]}
+        appointment = Decision(
+            candidate(category="appointment", summary="The dentist moved the cleaning."),
+            "send",
+            CALL_TODAY,
+            True,
+            True,
+        )
+        self.decisions = [pressure(), appointment]
+        self.jobs.states["aijob-1"] = "COMPLETED"
+        self.collector().run()
+        [held] = [v for k, v in self.account.items.items() if k.startswith("HELDBACK#")]
+        self.assertEqual((held["reason"], held["category"]), ("your_topic", "appointment"))
+        self.assertEqual(held["summary"], "The dentist moved the cleaning.")
+        self.assertEqual(self.stored()["category"], "scam_pressure")
 
     def test_held_back_moments_are_stored_apart(self) -> None:
         self.decisions = [

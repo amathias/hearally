@@ -185,6 +185,120 @@
     ]);
   }
 
+  // The ally's own schedule: when nothing but a heads-up may reach them, and
+  // when the daily list arrives (ARCHITECTURE.md section 7).
+  function scheduleCard(v) {
+    var s = v.settings || {};
+    var note = h("div", { "aria-live": "polite" });
+    function time(label, value) {
+      var input = h("input", { type: "time", name: label.toLowerCase().replace(/ /g, "-"), value: value || "", class: "mt-1 block rounded-lg border border-line bg-paper px-3 py-2" });
+      return [input, h("label", { class: "block font-sans text-sm font-semibold" }, [label, input])];
+    }
+    var quietStart = time("Quiet from", s.quiet_start);
+    var quietEnd = time("Quiet until", s.quiet_end);
+    var digest = time("Daily list at", s.digest_time);
+    var zones = [];
+    try { zones = Intl.supportedValuesOf("timeZone"); } catch (e) {}
+    var here = "";
+    try { here = Intl.DateTimeFormat().resolvedOptions().timeZone || ""; } catch (e) {}
+    [s.timezone, here].forEach(function (z) { if (z && zones.indexOf(z) < 0) zones.unshift(z); });
+    var zone = h("select", { name: "timezone", class: "mt-1 block w-full rounded-lg border border-line bg-paper px-3 py-2" },
+      zones.map(function (z) {
+        var o = h("option", { value: z, text: z.replace(/_/g, " ") });
+        if (z === s.timezone) o.setAttribute("selected", "");
+        return o;
+      }));
+    return h("section", { class: "mt-10 rounded-xl border border-line bg-paper px-5 py-5" }, [
+      h("h2", { class: "text-lg font-semibold", text: "Your schedule" }),
+      p("During quiet hours a heads-up still reaches you by email, but you are never phoned, and anything worth a call waits until they end. The daily list comes once a day.", "mt-1 text-muted"),
+      h("div", { class: "mt-4 grid gap-4 sm:grid-cols-3" }, [quietStart[1], quietEnd[1], digest[1]]),
+      h("label", { class: "mt-4 block font-sans text-sm font-semibold" }, ["Time zone", zone]),
+      h("div", { class: "mt-4" }, [
+        btn("Save", function () {
+          call("settings", { settings: { quiet_start: quietStart[0].value, quiet_end: quietEnd[0].value, digest_time: digest[0].value, timezone: zone.value } }).then(function (r) {
+            note.replaceChildren(p(r.status === 200 ? "Saved." : (r.data && r.data.detail) || "That could not be saved. Please try again.", "mt-2 font-sans text-sm " + (r.status === 200 ? "text-ok" : "text-flag")));
+          }, failed);
+        }),
+      ]),
+      note,
+    ]);
+  }
+
+  // Heads-up calls (ARCHITECTURE.md section 8): the ally adds their own number,
+  // proves it with a code by text, then chooses calls. Never the holder.
+  function phoneCard(v) {
+    var ph = v.phone || {};
+    var note = h("div", { "aria-live": "polite" });
+    var body = h("div", {});
+    function say(r, ok) {
+      note.replaceChildren(p(r.status === 200 ? ok : (r.data && r.data.detail) || "That did not work. Please try again.", "mt-2 font-sans text-sm " + (r.status === 200 ? "text-ok" : "text-flag")));
+    }
+    function numberForm() {
+      var input = h("input", { type: "tel", name: "phone", autocomplete: "tel", inputmode: "tel", placeholder: "555 201 0123", class: "mt-1 block w-full max-w-[16rem] rounded-lg border border-line bg-paper px-3 py-2" });
+      body.replaceChildren(
+        h("label", { class: "block font-sans text-sm font-semibold" }, ["Your US mobile number", input]),
+        h("div", { class: "mt-3" }, [
+          btn("Text me a code", function () {
+            call("phone", { phone: input.value }).then(function (r) {
+              if (r.status === 200) return codeForm(r.data.sent_to);
+              say(r, "");
+            }, failed);
+          }),
+        ]),
+      );
+    }
+    function codeForm(sentTo) {
+      var input = h("input", { type: "text", name: "code", autocomplete: "one-time-code", inputmode: "numeric", maxlength: "6", class: "mt-1 block w-full max-w-[10rem] rounded-lg border border-line bg-paper px-3 py-2 tracking-[0.3em]" });
+      body.replaceChildren(
+        p("We texted a code to " + (sentTo || "your number") + ". It works for 10 minutes.", "text-muted"),
+        h("label", { class: "mt-3 block font-sans text-sm font-semibold" }, ["The 6-digit code", input]),
+        h("div", { class: "mt-3 flex flex-wrap gap-3" }, [
+          btn("Confirm", function () {
+            call("phone_confirm", { code: input.value }).then(function (r) {
+              if (r.status === 200) return load();
+              say(r, "");
+            }, failed);
+          }, true),
+          btn("Use a different number", numberForm),
+        ]),
+      );
+    }
+    function verified() {
+      var box = h("input", { type: "checkbox", id: "calls", name: "calls", class: "mt-1 h-5 w-5 shrink-0 accent-teal" });
+      if (ph.calls) box.checked = true;
+      box.addEventListener("change", function () {
+        call("calls", { on: box.checked }).then(function (r) {
+          if (r.status !== 200) box.checked = !box.checked;
+          say(r, box.checked ? "Calls are on." : "Calls are off.");
+        }, failed);
+      });
+      body.replaceChildren(
+        p("Your number: •••" + ph.last4 + ", confirmed.", "font-semibold"),
+        h("div", { class: "mt-4 flex items-start gap-3" }, [
+          box,
+          h("label", { for: "calls" }, [
+            "Call me for heads-ups about " + v.holder + ". Hearally may place an automated call to this number when there is a heads-up: at most 10 a month across " + v.holder + "'s account, and never during your quiet hours. The call reads the heads-up and ends; it asks you for nothing, and it is not an emergency service. You can turn this off at any time.",
+          ]),
+        ]),
+        h("div", { class: "mt-4 flex flex-wrap gap-3" }, [
+          btn("Change number", numberForm),
+          btn("Remove my number", function () {
+            call("phone_remove").then(function () { load(); }, failed);
+          }),
+        ]),
+      );
+    }
+    if (ph.verified) verified();
+    else if (ph.pending) codeForm("");
+    else numberForm();
+    return h("section", { class: "mt-10 rounded-xl border border-line bg-paper px-5 py-5" }, [
+      h("h2", { class: "text-lg font-semibold", text: "Phone calls for heads-ups (optional)" }),
+      p("Besides the email, you can be phoned when there is a heads-up. First, prove the number is yours with a code by text.", "mt-1 text-muted"),
+      h("div", { class: "mt-4" }, [body]),
+      note,
+    ]);
+  }
+
   function confirmed(v) {
     var items = v.items || [];
     show([
@@ -195,6 +309,8 @@
       items.length
         ? h("ul", { class: "mt-6 rounded-xl border border-line bg-paper px-5" }, items.map(itemRow))
         : h("div", { class: "mt-6 rounded-xl border border-dashed border-line bg-paper/60 px-5 py-4" }, [p("Nothing yet. When something comes up, you will get an email with a link back here.", "text-muted")]),
+      v.level === "off" ? null : phoneCard(v),
+      v.level === "off" ? null : scheduleCard(v),
       h("div", { class: "mt-10" }, [
         btn("Stop receiving these", function () {
           if (!window.confirm("Stop receiving anything from Hearally about " + v.holder + "? They will see that you stopped.")) return;

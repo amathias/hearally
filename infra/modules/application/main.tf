@@ -33,6 +33,20 @@ locals {
       actions   = ["secretsmanager:GetSecretValue"]
       resources = ["arn:aws:secretsmanager:${var.aws_region}:${var.account_id}:secret:${var.name}/nebius-api-key-*"]
     }
+    # CALL-E, for heads-up calls: the deliver job only.
+    calle_key = {
+      actions   = ["secretsmanager:GetSecretValue"]
+      resources = ["arn:aws:secretsmanager:${var.aws_region}:${var.account_id}:secret:${var.name}/calle-*"]
+    }
+    # An ally proves their number with a code by text: the ally link only.
+    phone_codes = {
+      actions   = ["secretsmanager:GetSecretValue"]
+      resources = ["arn:aws:secretsmanager:${var.aws_region}:${var.account_id}:secret:${var.name}/phone-pepper-*"]
+    }
+    notify_send = {
+      actions   = ["sms-voice:SendNotifyTextMessage", "sms-voice:DescribeNotifyConfigurations"]
+      resources = ["arn:aws:sms-voice:${var.aws_region}:${var.account_id}:notify-configuration/${var.notify_configuration_id}"]
+    }
     # The Tavily key, for the weekly scam-library refresh only.
     tavily_key = {
       actions   = ["secretsmanager:GetSecretValue"]
@@ -60,6 +74,12 @@ locals {
     upload_verify = {
       actions   = ["s3:GetObject"]
       resources = ["arn:aws:s3:::${var.media_bucket}/incoming/*"]
+    }
+    # "Listen" signs a link to one silenced copy: redacted/ only, never the
+    # unredacted originals under incoming/.
+    redacted_read = {
+      actions   = ["s3:GetObject"]
+      resources = ["arn:aws:s3:::${var.media_bucket}/redacted/*"]
     }
     # Exactly the four calls the reservation repository makes, on reservations
     # only.
@@ -213,9 +233,10 @@ locals {
         values   = ["OUTBOX"]
       }
     }
-    # It reads allies and items, and logs what was sent, under USER#.
+    # It reads allies and items, logs what was sent, and counts the month's
+    # calls (a conditional update), under USER#.
     deliver_account = {
-      actions   = ["dynamodb:GetItem", "dynamodb:Query", "dynamodb:PutItem"]
+      actions   = ["dynamodb:GetItem", "dynamodb:Query", "dynamodb:PutItem", "dynamodb:UpdateItem"]
       resources = [var.table_arn]
       condition = {
         test     = "ForAllValues:StringLike"
@@ -350,18 +371,18 @@ resource "aws_cloudwatch_log_group" "lambda" {
 resource "aws_lambda_function" "handler" {
   for_each = var.handlers
 
-  function_name    = "${var.name}-${each.key}"
-  role             = aws_iam_role.handler[each.key].arn
-  handler          = each.value.handler
-  runtime          = "python3.12"
-  architectures    = ["arm64"]
-  timeout          = each.value.timeout
-  memory_size      = each.value.memory
+  function_name = "${var.name}-${each.key}"
+  role          = aws_iam_role.handler[each.key].arn
+  handler       = each.value.handler
+  runtime       = "python3.12"
+  architectures = ["arm64"]
+  timeout       = each.value.timeout
+  memory_size   = each.value.memory
   # The worker's steps must never run twice at once: one at a time each.
   reserved_concurrent_executions = each.value.single ? 1 : -1
   layers                         = each.value.layer ? [aws_lambda_layer_version.worker[0].arn] : []
-  filename         = data.archive_file.backend.output_path
-  source_code_hash = data.archive_file.backend.output_base64sha256
+  filename                       = data.archive_file.backend.output_path
+  source_code_hash               = data.archive_file.backend.output_base64sha256
 
   environment {
     variables = merge(

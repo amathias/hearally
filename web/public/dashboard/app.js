@@ -83,14 +83,24 @@
   function signedOut() {
     content.removeAttribute("aria-busy");
     document.getElementById("sign-out").hidden = true;
+    // From the home page's "Create your free account": straight to sign-up.
+    if (new URLSearchParams(location.search).has("signup")) {
+      show([para("Opening the sign-up page…", "text-muted")]);
+      signIn("signup");
+      return;
+    }
     show([
       h("div", { class: "max-w-[40rem]" }, [
         h("p", { class: "text-lg font-semibold", text: "Sign in to see your dashboard." }),
-        para(
-          "Hearally is in public preview. If you do not have an account yet, you can create one on the sign-in page.",
-          "mt-2 text-muted",
-        ),
-        h("div", { class: "mt-6" }, [button("Sign in", signIn, true)]),
+        para("Hearally is in public preview. New here? Create an account; it is free.", "mt-2 text-muted"),
+        h("div", { class: "mt-6 flex flex-wrap gap-3" }, [
+          button("Sign in", function () {
+            signIn();
+          }, true),
+          button("Create an account", function () {
+            signIn("signup");
+          }),
+        ]),
       ]),
     ]);
   }
@@ -111,7 +121,8 @@
     return btoa(s).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
   }
 
-  function signIn() {
+  // ``mode`` "signup" opens Cognito's sign-up page instead of sign-in.
+  function signIn(mode) {
     var verifier = randomString(48);
     var state = randomString(24);
     STORE.setItem("pkce_verifier", verifier);
@@ -127,7 +138,7 @@
         code_challenge_method: "S256",
         state: state,
       });
-      location.assign(CONFIG.authOrigin + "/oauth2/authorize?" + params);
+      location.assign(CONFIG.authOrigin + (mode === "signup" ? "/signup?" : "/oauth2/authorize?") + params);
     });
   }
 
@@ -291,6 +302,7 @@
   // Never amber (amber means allies) and never alarm red.
   var STATUS = {
     available: { label: "Works now", cls: "text-ok", dot: "bg-ok" },
+    preview: { label: "Preview", cls: "text-teal", dot: "bg-teal" },
     testing: { label: "Being tested", cls: "text-teal", dot: "bg-teal" },
     in_progress: { label: "Being built", cls: "text-muted", dot: "bg-muted/50" },
     not_yet: { label: "Not yet", cls: "text-muted", dot: "bg-muted/50" },
@@ -325,6 +337,31 @@
     return h("ul", { class: "divide-y divide-line border-y border-line" }, items.map(render));
   }
 
+  // The model's categories (backend judgement.CATEGORIES), in plain words.
+  var CATEGORY_WORDS = {
+    scam_pressure: "Call pressing for money or details",
+    appointment: "Appointment",
+    help_request: "Request for help",
+    appointment_note: "Said at an appointment",
+    task: "Something to do",
+    transport: "Getting somewhere",
+    shopping: "Shopping",
+    medication_mention: "Medication mentioned",
+    good_news: "Good news",
+    other: "Worth knowing",
+  };
+  // How fast it reaches allies. Brick for a heads-up, never alarm red.
+  var GRADE_BADGES = {
+    priority: ["Heads-up", "bg-flag/10 text-flag"],
+    call_today: ["Worth a call today", "bg-teal/10 text-teal"],
+    daily: ["Daily list", "bg-line text-muted"],
+  };
+
+  function gradeBadge(grade) {
+    var b = GRADE_BADGES[grade];
+    return b ? h("span", { class: "rounded px-2 py-0.5 font-sans text-[11px] font-bold uppercase tracking-[0.12em] " + b[1], text: b[0] }) : null;
+  }
+
   function summaryRow(item) {
     var learned = item.learned
       ? "Kept for the daily list: an ally said something like this was nothing."
@@ -332,9 +369,43 @@
         ? "Passed on: something like this was marked as nothing before, but this had " + signalWords(item.new_signals) + "."
         : "";
     return h("li", { class: "py-4" }, [
-      h("p", { text: item.summary || "" }),
-      h("p", { class: "mt-1 font-sans text-sm text-muted", text: [when(item.spoken_at), item.category].filter(Boolean).join(" · ") }),
+      h("p", { class: "flex flex-wrap items-center gap-2" }, [
+        gradeBadge(item.grade),
+        h("span", { class: "font-sans text-sm font-semibold text-muted", text: CATEGORY_WORDS[item.category] || "" }),
+      ]),
+      h("p", { class: "mt-1.5", text: item.summary || "" }),
+      h("p", { class: "mt-1 font-sans text-sm text-muted", text: when(item.spoken_at) }),
       learned ? h("p", { class: "mt-1 font-sans text-sm text-amber-text", text: learned }) : null,
+    ]);
+  }
+
+  // Held back from every ally, shown to the account holder alone, who can
+  // send one anyway: it then joins the next daily list (ARCHITECTURE.md section 6).
+  function heldBackList(moments) {
+    var note = h("div", { "aria-live": "polite" });
+    return h("div", {}, [
+      para("Only you can see these. Sending one anyway puts it in your allies' next daily list.", "mt-1 max-w-[40rem] text-muted"),
+      h(
+        "ul",
+        { class: "mt-4 divide-y divide-line border-y border-line" },
+        moments.map(function (m) {
+          var why = m.reason === "your_topic" ? "One of your topics" : "Private";
+          return h("li", { class: "flex flex-wrap items-start justify-between gap-3 py-4" }, [
+            h("div", { class: "min-w-0 max-w-[40rem]" }, [
+              h("p", { text: m.summary || "Held back before details were kept." }),
+              h("p", { class: "mt-1 font-sans text-sm text-muted", text: [when(m.spoken_at), why].filter(Boolean).join(" · ") }),
+            ]),
+            m.summary
+              ? button("Send anyway", function () {
+                  if (window.confirm("Send this to your allies in their next daily list?")) {
+                    allyAction("release", { id: m.id }, note);
+                  }
+                })
+              : null,
+          ]);
+        }),
+      ),
+      note,
     ]);
   }
 
@@ -370,6 +441,63 @@
       return SIGNAL_WORDS[s] || s.replace(/_/g, " ");
     });
     return words.length < 2 ? words.join("") : words.slice(0, -1).join(", ") + " and " + words[words.length - 1];
+  }
+
+  // Topics that never leave (ARCHITECTURE.md section 6): saved as a whole list.
+  function topicsCard(topics) {
+    var note = h("div", { "aria-live": "polite" });
+    function save(next) {
+      allyAction("topics", { topics: next }, note);
+    }
+    var input = h("input", {
+      type: "text",
+      name: "topic",
+      maxlength: "40",
+      placeholder: "For example, my divorce",
+      class: "w-full max-w-[20rem] rounded-lg border border-line bg-paper px-3 py-2",
+      "aria-label": "A topic that never leaves",
+    });
+    function add() {
+      var t = input.value.trim();
+      if (!t) {
+        note.replaceChildren(para("Type a word or a short phrase first.", "mt-3 text-flag"));
+        return;
+      }
+      save(topics.concat([t]));
+    }
+    input.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") add();
+    });
+    return h("section", { class: "mt-4 max-w-[44rem] rounded-xl border border-line bg-paper px-6 py-5" }, [
+      para(
+        "Name anything you never want passed on. Anything that mentions it is held back from every ally and listed for you alone. The one exception, as with the dignity filter: a caller pressing for money or details, or a request for help, is always passed on.",
+        "text-muted",
+      ),
+      topics.length
+        ? h(
+            "ul",
+            { class: "mt-4 flex flex-wrap gap-2" },
+            topics.map(function (t) {
+              var remove = h("button", {
+                type: "button",
+                class: "rounded-full px-2 py-0.5 text-muted hover:bg-line hover:text-ink",
+                "aria-label": "Remove " + t,
+                text: "×",
+              });
+              remove.addEventListener("click", function () {
+                save(
+                  topics.filter(function (x) {
+                    return x !== t;
+                  }),
+                );
+              });
+              return h("li", { class: "inline-flex items-center gap-2 rounded-full border border-line bg-sand py-1 pl-3 pr-1 font-sans text-sm" }, [t, remove]);
+            }),
+          )
+        : para("No topics yet.", "mt-4 font-sans text-sm text-muted"),
+      h("div", { class: "mt-4 flex flex-wrap items-center gap-3" }, [input, button("Add", add)]),
+      note,
+    ]);
   }
 
   function learnedSection(d) {
@@ -580,7 +708,7 @@
     panel.appendChild(status);
     panel.appendChild(
       h("p", { class: "mt-4" }, [
-        h("a", { href: "/setup/", class: "font-sans font-semibold text-teal underline underline-offset-4", text: "How to set up the collector →" }),
+        h("a", { href: "/setup/collector/", class: "font-sans font-semibold text-teal underline underline-offset-4", text: "How to set up the collector →" }),
       ]),
     );
     return panel;
@@ -591,8 +719,13 @@
   // A real table: one header row, one row per thing. Scrolls sideways on a
   // narrow phone rather than squashing its columns.
   function table(columns, rows) {
+    rows.forEach(function (row) {
+      Array.prototype.forEach.call(row.children, function (td, i) {
+        if (columns[i]) td.setAttribute("data-label", columns[i]);
+      });
+    });
     return h("div", { class: "mt-4 overflow-x-auto rounded-xl border border-line bg-paper" }, [
-      h("table", { class: "w-full min-w-[34rem] border-collapse text-left" }, [
+      h("table", { class: "stack w-full border-collapse text-left sm:min-w-[34rem]" }, [
         h("thead", {}, [
           h(
             "tr",
@@ -718,7 +851,7 @@
         "Sign in to Plaud once. After that, new recordings come in by themselves about every 15 minutes, with no computer and nothing to export. Only recordings made after you connect are brought in.",
         "mt-2 max-w-[40rem] text-muted",
       ),
-      para("You will go to Plaud’s own page to sign in and approve, then come back here. This way of connecting is new, and we are still testing it.", "mt-2 max-w-[40rem] font-sans text-sm text-muted"),
+      para("You will go to Plaud’s own page to sign in and approve, then come back here. This way of connecting is a preview: Plaud has not yet published terms for services like Hearally using it.", "mt-2 max-w-[40rem] font-sans text-sm text-muted"),
       h("div", { class: "mt-4" }, [
         button(
           "Sign in to Plaud",
@@ -753,7 +886,7 @@
       );
     }
     return table(
-      ["Recorded", "Length", "From", "Status"],
+      ["Recorded", "Length", "From", "Status", "Silenced copy"],
       d.recordings.map(function (r) {
         return h("tr", {}, [
           cell(when(r.recorded_at)),
@@ -771,9 +904,46 @@
                 }[r.status] || r.status,
             }),
           ),
+          cell(listenCell(r)),
         ]);
       }),
     );
+  }
+
+  // The copy Hearally keeps, with account and card numbers silenced in the
+  // audio itself (ARCHITECTURE.md section 3). Kept 7 days; the link lasts 10
+  // minutes and is never stored.
+  var KEPT_MS = 7 * 86400 * 1000;
+
+  function listenCell(r) {
+    var kept = r.redacted && r.transcribed_at && Date.now() - new Date(r.transcribed_at).getTime() < KEPT_MS;
+    if (!kept) {
+      return h("span", { class: "font-sans text-sm text-muted", text: r.redacted ? "No longer kept" : "—" });
+    }
+    var box = h("div", {});
+    var play = button("Listen", function () {
+      play.disabled = true;
+      send("POST", "/v1/me/recordings/listen", { id: r.id }).then(
+        function (res) {
+          if (res.signedOut) return signedOut();
+          if (res.status !== 200) {
+            play.disabled = false;
+            box.replaceChildren(play, para(res.status === 410 ? "No longer kept." : "It could not be played just now.", "mt-1 font-sans text-sm text-flag"));
+            return;
+          }
+          var audio = h("audio", { controls: "", preload: "auto", class: "w-full max-w-[18rem]", "aria-label": "The silenced copy" });
+          audio.src = res.data.url;
+          box.replaceChildren(audio, para("Numbers are silenced in this copy.", "mt-1 font-sans text-xs text-muted"));
+          audio.play().catch(function () {});
+        },
+        function () {
+          play.disabled = false;
+          box.replaceChildren(play, para("Hearally could not be reached.", "mt-1 font-sans text-sm text-flag"));
+        },
+      );
+    });
+    box.appendChild(play);
+    return box;
   }
 
   // One table of every way in: Plaud sign-in and each computer.
@@ -911,6 +1081,7 @@
     var input = h("input", {
       type: "text",
       maxlength: "40",
+      name: "display-name",
       value: d.display_name || "",
       placeholder: "For example, Aaron or Mum",
       class: "mt-2 w-full max-w-[20rem] rounded-lg border border-line bg-paper px-3 py-2",
@@ -939,10 +1110,10 @@
       var input = h("input", Object.assign({ class: "mt-1 w-full rounded-lg border border-line bg-paper px-3 py-2" }, attrs));
       return [input, h("label", { class: "block font-sans text-sm font-semibold" }, [label, input])];
     }
-    var name = field("Name", { type: "text", maxlength: "60", autocomplete: "off" });
-    var email = field("Email", { type: "email", maxlength: "254", autocomplete: "off" });
-    var rel = field("Relationship (optional)", { type: "text", maxlength: "40", placeholder: "Daughter, neighbour, friend" });
-    var level = h("select", { class: "mt-1 w-full rounded-lg border border-line bg-paper px-3 py-2" },
+    var name = field("Name", { type: "text", name: "ally-name", maxlength: "60", autocomplete: "off" });
+    var email = field("Email", { type: "email", name: "ally-email", maxlength: "254", autocomplete: "off" });
+    var rel = field("Relationship (optional)", { type: "text", name: "ally-relationship", maxlength: "40", placeholder: "Daughter, neighbour, friend" });
+    var level = h("select", { name: "ally-level", class: "mt-1 w-full rounded-lg border border-line bg-paper px-3 py-2" },
       LEVELS.map(function (l) { return h("option", { value: l[0], text: l[1] }); }));
     var note = h("div", { "aria-live": "polite" });
     return h("section", { class: "mt-4 rounded-xl border border-line bg-paper px-6 py-6" }, [
@@ -987,7 +1158,7 @@
       ["Ally", "Status", "What they hear", ""],
       d.allies.map(function (a) {
         var st = STATUS_WORDS[a.status] || [a.status, false];
-        var level = h("select", { class: "rounded-md border border-line bg-paper px-2 py-1.5 font-sans text-sm", "aria-label": "What " + a.name + " hears" },
+        var level = h("select", { name: "level-" + a.id, class: "rounded-md border border-line bg-paper px-2 py-1.5 font-sans text-sm", "aria-label": "What " + a.name + " hears" },
           LEVELS.map(function (l) {
             var o = h("option", { value: l[0], text: l[1] });
             if (l[0] === a.level) o.setAttribute("selected", "");
@@ -1001,6 +1172,18 @@
             h("p", { class: "font-semibold text-amber-text", text: a.name }),
             h("p", { class: "mt-0.5 font-sans text-sm text-muted", text: [a.relationship, a.email].filter(Boolean).join(" · ") }),
             a.first ? h("p", { class: "mt-1 font-sans text-xs font-bold uppercase tracking-[0.12em] text-amber-text", text: "First ally" }) : null,
+            a.status === "confirmed" && a.level !== "off"
+              ? h("p", {
+                  class: "mt-1 font-sans text-xs text-muted",
+                  text: a.calls && a.phone_last4 ? "Phone calls for heads-ups: on · •••" + a.phone_last4 : "Phone calls: off",
+                })
+              : null,
+            a.status === "confirmed" && a.level === "alerts_and_items"
+              ? h("p", {
+                  class: "mt-1 font-sans text-xs text-muted",
+                  text: "Quiet " + (a.quiet_start || "21:00") + "–" + (a.quiet_end || "08:00") + " · daily list " + (a.digest_time || "18:00") + (a.timezone ? " · " + a.timezone : ""),
+                })
+              : null,
           ].filter(Boolean)),
           cell(statusDot(st[1], st[0])),
           cell(level),
@@ -1025,7 +1208,17 @@
       d.allies.length
         ? alliesTable(d)
         : empty("You have not added any allies yet.", "Add someone below. Each person confirms before receiving anything."),
-      para("A heads-up goes to every confirmed ally who hears them, at most one a day. Something worth a call today goes to your first ally, held until morning during their quiet hours (21:00 to 08:00). Everything else arrives in one daily list at 18:00.", "mt-4 max-w-[44rem] font-sans text-sm text-muted"),
+      d.calls
+        ? para(
+            "Phone calls: an ally who hears heads-ups can also choose to be phoned for one, from their own page, after confirming their number by text. During the public preview, your account has " +
+              d.calls.limit +
+              " calls a month; " +
+              d.calls.used +
+              " used this month.",
+            "mt-4 max-w-[44rem] font-sans text-sm text-muted",
+          )
+        : null,
+      para("A heads-up goes to every confirmed ally who hears them, at most one a day. Something worth a call today goes to your first ally, held until morning during their quiet hours. Everything else arrives in one daily list. Each ally sets their own quiet hours and daily-list time on their page (21:00 to 08:00, and 18:00, unless they change them).", "mt-4 max-w-[44rem] font-sans text-sm text-muted"),
       d.allies.length < 5 ? addCard(d) : null,
       heading("What an ally receives"),
       para("An example. Every message says Hearally is not an emergency service, and lets them say it was nothing.", "mt-1 max-w-[40rem] text-muted"),
@@ -1115,7 +1308,7 @@
         "mt-3 text-muted",
       ),
       h("p", { class: "mt-4" }, [
-        h("a", { href: "/setup/", class: "font-sans font-semibold text-teal underline underline-offset-4", text: "Step-by-step setup guide →" }),
+        h("a", { href: "/setup/collector/", class: "font-sans font-semibold text-teal underline underline-offset-4", text: "Step-by-step setup guide →" }),
       ]),
       h("div", { class: "mt-4" }, [button("I have finished setup", render)]),
     ]);
@@ -1166,7 +1359,7 @@
             var badge = {
               done: ["Done", "bg-ok text-paper"],
               next: ["Next", "bg-teal text-paper"],
-              later: ["Coming", "bg-line text-muted"],
+              later: ["Later", "bg-line text-muted"],
             }[state];
             return h("li", { class: "flex gap-4 py-4" }, [
               h("span", { class: "font-display text-2xl font-semibold " + (state === "later" ? "text-muted" : "text-teal"), text: String(n) }),
@@ -1181,11 +1374,8 @@
             ]);
           }
 
-          box.replaceChildren.apply(box, [
-            d.acknowledged ? null : agreementPanel(d.acknowledgement_version, render),
-            status,
-            heading("Getting set up"),
-            h("ol", { class: "divide-y divide-line border-y border-line" }, [
+          var setUp = connected && c.allies_confirmed > 0;
+          var checklist = h("ol", { class: "divide-y divide-line border-y border-line" }, [
               step(
                 1,
                 connected ? "done" : "next",
@@ -1212,7 +1402,8 @@
                   ? c.allies_confirmed + " confirmed. Messages reach them by email."
                   : "Each ally gets an email, reads what Hearally is and is not, and confirms. Nothing reaches them before that.",
               ),
-            ]),
+          ]);
+          var latest = [
             heading("Latest summaries"),
             d.latest_summaries.length
               ? list(d.latest_summaries, summaryRow)
@@ -1220,9 +1411,25 @@
                   "No summaries yet.",
                   "Recordings are transcribed about every half hour. Anything worth passing on appears here, usually within an hour of recording.",
                 ),
+          ];
+          var setup = setUp
+            ? [
+                h("details", { class: "mt-12 rounded-xl border border-line bg-paper px-5 py-4" }, [
+                  h("summary", { class: "cursor-pointer font-sans font-semibold text-ink", text: "Setup is complete ✓ Show the steps" }),
+                  checklist,
+                ]),
+              ]
+            : [heading("Getting set up"), checklist];
+
+          box.replaceChildren.apply(box, [
+            d.acknowledged ? null : agreementPanel(d.acknowledgement_version, render),
+            status,
+          ]
+            .concat(setUp ? latest.concat(setup) : setup.concat(latest))
+            .concat([
             heading("What works in the preview"),
             capabilities(d.capabilities),
-          ].filter(Boolean));
+          ]).filter(Boolean));
         })
         .catch(function () {
           box.replaceChildren(para("Today could not be loaded. Please reload the page.", "text-flag"));
@@ -1247,9 +1454,22 @@
               return h("li", { class: "py-4" }, [
                 h("p", {}, [
                   h("span", { class: "font-semibold text-amber-text", text: m.ally_name || "An ally" }),
-                  " · " + ({ heads_up: "Heads-up", call_today: "Worth a call today", digest: "Daily list" }[m.kind] || "Message") + " by " + (m.channel || "email"),
+                  " · " + ({ heads_up: "Heads-up", call_today: "Worth a call today", digest: "Daily list" }[m.kind] || "Message") + " by " + (m.channel === "call" ? "phone call" : m.channel || "email"),
                 ]),
-                h("p", { class: "mt-1 font-sans text-sm text-muted", text: [when(m.sent_at), m.status].filter(Boolean).join(" · ") }),
+                h("p", {
+                  class: "mt-1 font-sans text-sm text-muted",
+                  text: [
+                    when(m.sent_at),
+                    {
+                      sent: "Sent",
+                      placed: "Called",
+                      failed: "The call could not be placed",
+                      monthly_limit_reached: "Not called: this month's calls were used",
+                    }[m.status] || m.status,
+                  ]
+                    .filter(Boolean)
+                    .join(" · "),
+                }),
               ]);
             })
           : empty("Nothing has been sent yet.", "Every message to an ally is listed here: what your allies heard, and when."),
@@ -1266,10 +1486,7 @@
             ),
         heading("Held back"),
         d.held_back.length
-          ? para(
-              d.held_back.length + " moment" + (d.held_back.length === 1 ? " was" : "s were") + " held back by the dignity filter. Only you can see these.",
-              "mt-4 max-w-[40rem] text-muted",
-            )
+          ? heldBackList(d.held_back)
           : empty(
               "Nothing has been held back.",
               "When the dignity filter keeps something private, it is listed here for you, and only you.",
@@ -1288,20 +1505,13 @@
     preferences: function (d) {
       return learnedSection(d).concat([
         heading("Topics that never leave"),
-        d.blocklist_topics.length
-          ? list(d.blocklist_topics, function (t) {
-              return h("li", { class: "py-3", text: t });
-            })
-          : empty("No topics set.", "You will be able to name anything you never want shared. It is removed before any message is written."),
+        topicsCard(d.blocklist_topics || []),
         heading("Dignity filter"),
         para(
           d.dignity_filter === "custom"
             ? "You have adjusted the dignity filter."
-            : "The default is on: private moments such as venting, family arguments and bodily remarks are held back from every ally, and film or television audio is ignored.",
+            : "Always on: private moments such as venting, family arguments and bodily remarks are held back from every ally, and film or television audio is ignored. No ally can turn it off.",
         ),
-        d.editing_available
-          ? null
-          : empty("Changing preferences is not available yet.", "These settings are shown so you know how Hearally treats your recordings today. Editing them from the dashboard is being built."),
       ]);
     },
 

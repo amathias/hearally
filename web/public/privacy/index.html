@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&amp;family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/styles.css?v=e6358a864f">
+<link rel="stylesheet" href="/styles.css?v=62cc5f6cc1">
 </head>
 <body>
 
@@ -23,14 +23,14 @@
 
 <main class="mx-auto max-w-3xl px-6 py-16">
   <h1 class="text-[2.25rem] font-semibold leading-tight">Privacy</h1>
-  <p class="mt-3 text-muted">Last updated 3 October 2026.</p>
+  <p class="mt-3 text-muted">Last updated 9 October 2026.</p>
 
   <p class="mt-8 text-lg">Hearally listens to part of your life so it can tell the people you choose about the things you would want them to know. That only works if you can trust exactly what happens to what it hears. This page says so plainly.</p>
 
   <h2 class="mt-14 text-2xl font-semibold">The short version</h2>
   <ul class="mt-4 list-disc space-y-2 pl-6 text-muted">
     <li>You decide who hears what. Nobody else receives anything.</li>
-    <li>Full transcripts are never stored. What we keep is a short summary of each thing worth passing on.</li>
+    <li>Full transcripts are never kept: each is deleted as soon as it has been read. What we keep is a short summary of each thing worth passing on, or held back for you alone.</li>
     <li>Account numbers are silenced in the audio itself, and the unredacted original is deleted.</li>
     <li>We do not sell your data, show you ads, or use your recordings to train AI models, and neither do the companies that process them for us.</li>
     <li>Hearally is for people 18 or older.</li>
@@ -46,7 +46,7 @@
     <div class="border-b border-line py-4"><dt class="font-semibold">Your recordings</dt><dd class="mt-1 text-muted">Audio from your Plaud recorder, and when it was recorded, length and how it arrived.</dd></div>
     <div class="border-b border-line py-4"><dt class="font-semibold">Your Plaud connection</dt><dd class="mt-1 text-muted">If you sign in to Plaud from Hearally, the sign-in Plaud gives us, kept apart from everything else and used only to fetch new recordings.</dd></div>
     <div class="border-b border-line py-4"><dt class="font-semibold">Consent records</dt><dd class="mt-1 text-muted">What you agreed to and when, and what each ally agreed to and when.</dd></div>
-    <div class="border-b border-line py-4"><dt class="font-semibold">Your allies</dt><dd class="mt-1 text-muted">The name, email address and relationship of each person you add, what you have chosen to let each one hear, and what was sent to them.</dd></div>
+    <div class="border-b border-line py-4"><dt class="font-semibold">Your allies</dt><dd class="mt-1 text-muted">The name, email address and relationship of each person you add, what you have chosen to let each one hear, what was sent to them, and the quiet hours, daily-list time and time zone each ally sets for themselves. If an ally chooses phone calls, the mobile number they confirmed, and a record of each call.</dd></div>
   </dl>
 
   <h2 class="mt-14 text-2xl font-semibold">How recordings reach us</h2>
@@ -63,25 +63,29 @@
     <li>To decide what is worth passing on, the transcript, with long numbers masked, is sent to NVIDIA&rsquo;s open Nemotron model, hosted by Nebius. We use Nebius with <strong>zero data retention</strong>, which means Nebius does not store what we send once it has answered. Nebius states that it does not use customer content to train any AI model.</li>
     <li>What comes back is a short summary, such as &ldquo;a new appointment on Thursday&rdquo;. That summary is what we keep. The transcript itself is deleted as soon as it has been read.</li>
   </ol>
-  <p class="mt-4">Before anything is kept as a summary, our dignity filter holds back private material that is not a concern, such as a film playing in the room, and lists it for you alone.</p>
+  <p class="mt-4">Before anything is passed on, our dignity filter holds back private moments, such as venting about family or a remark about your body, and anything that mentions a topic you have named. The one exception: a caller pressing for money or details, or a request for help, is always passed on. Their short summaries are listed for you alone; no ally sees one unless you choose to send it. A film or programme playing in the room is ignored and not kept at all.</p>
 
   <h2 class="mt-14 text-2xl font-semibold">Who can see it</h2>
   <ul class="mt-4 list-disc space-y-2 pl-6">
     <li><strong>You</strong> can see everything about your account in your dashboard.</li>
     <li><strong>Your allies</strong> see only what you allowed each of them to see, by email and through a private link that expires.</li>
-    <li><strong>Companies that run Hearally for us</strong> process data only to provide the service: Amazon Web Services (hosting, storage, email) and Nebius (the AI models). None of them may use it for their own purposes.</li>
+    <li><strong>Companies that run Hearally for us</strong> process data only to provide the service: Amazon Web Services (hosting, storage, email, and the text that confirms an ally's number), Nebius (the AI models), CALL-E (the automated phone calls an ally chooses), and Google Analytics (which pages of this website are visited). None of them may use it for their own purposes.</li>
   </ul>
   <p class="mt-4">We do not sell data, share it with advertisers, or use it for anything other than running Hearally for you.</p>
+
+  <h2 class="mt-14 text-2xl font-semibold">Website analytics</h2>
+  <p class="mt-4">We use Google Analytics to count visits to the pages of this website, so we can see which pages help. It records which page was opened and the page before it, as a web address without anything after a "?" or "#"; the type of browser and device; and a rough location from the internet address. It sets cookies in your browser for this. It never receives anything from your recordings, your summaries, your allies, your email address or your allies' links, and it is not linked to your account. Google signals and advertising features are off.</p>
 
   <h2 class="mt-14 text-2xl font-semibold">How long we keep it</h2>
   <table class="mt-4 w-full border-collapse text-left">
     <thead><tr class="border-b border-line text-sm uppercase tracking-wide text-muted"><th class="py-3 pr-4 font-semibold">What</th><th class="py-3 font-semibold">How long</th></tr></thead>
     <tbody>
       <tr class="border-b border-line"><td class="py-3 pr-4">Unredacted audio</td><td class="py-3 text-muted">Deleted once the silenced copy exists, normally within an hour. If processing fails, a safeguard deletes it within about two days.</td></tr>
-      <tr class="border-b border-line"><td class="py-3 pr-4">Full transcripts</td><td class="py-3 text-muted">Never stored. Deleted as soon as they have been read. If processing fails, a safeguard deletes them within about two days.</td></tr>
+      <tr class="border-b border-line"><td class="py-3 pr-4">Full transcripts</td><td class="py-3 text-muted">Never kept. Each is deleted as soon as it has been read, normally within an hour of the recording. If processing fails, a safeguard deletes it within about two days.</td></tr>
       <tr class="border-b border-line"><td class="py-3 pr-4">Silenced audio</td><td class="py-3 text-muted">7 days.</td></tr>
       <tr class="border-b border-line"><td class="py-3 pr-4">Summaries, heads-ups and held-back moments</td><td class="py-3 text-muted">90 days.</td></tr>
       <tr class="border-b border-line"><td class="py-3 pr-4">The list of recordings received</td><td class="py-3 text-muted">90 days.</td></tr>
+      <tr class="border-b border-line"><td class="py-3 pr-4">An ally's phone number</td><td class="py-3 text-muted">Until the ally removes it, or you remove the ally. The code that confirms it is never stored, only a keyed fingerprint of it, for ten minutes.</td></tr>
       <tr class="border-b border-line"><td class="py-3 pr-4">Your Plaud connection</td><td class="py-3 text-muted">Until you disconnect Plaud or close your account.</td></tr>
       <tr class="border-b border-line"><td class="py-3 pr-4">Consent records</td><td class="py-3 text-muted">For as long as your account exists, so there is always a record of what was agreed.</td></tr>
     </tbody>
@@ -104,5 +108,6 @@
   </div>
 </main>
 
+<script src="/analytics.js?v=462a74c892" defer></script>
 </body>
 </html>

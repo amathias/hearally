@@ -8,6 +8,10 @@ locals {
   environment = "production"
   domain_name = "hearally.com"
 
+  # Texts allies their phone codes. Created outside Terraform, which cannot
+  # manage it yet: backend/src/hearally/configure_notify.py, 2026-10-06.
+  notify_configuration_id = "notify-fa7fb4242fe3462a924c92b0ae552cfc"
+
   common_tags = {
     Application = "Hearally"
     Environment = "Production"
@@ -39,6 +43,10 @@ module "edge" {
   secret_name_prefix = local.name
   api_origin_host    = module.application.api_origin_host
   sign_in_origin     = module.identity.hosted_ui_domain
+  media_origins = [
+    "https://${module.data.media_bucket}.s3.amazonaws.com",
+    "https://${module.data.media_bucket}.s3.us-east-1.amazonaws.com",
+  ]
 }
 
 module "data" {
@@ -62,13 +70,14 @@ module "application" {
   backend_source_dir = "${path.root}/../../backend/src"
   worker_layer_dir   = "${path.root}/../../.build/worker-layer"
 
-  table_name           = module.data.table_name
-  table_arn            = module.data.table_arn
-  processing_queue_url = module.data.processing_queue_url
-  processing_queue_arn = module.data.processing_queue_arn
-  media_bucket         = module.data.media_bucket
-  jwt_issuer           = module.identity.issuer
-  jwt_audience         = module.identity.client_id
+  table_name              = module.data.table_name
+  table_arn               = module.data.table_arn
+  processing_queue_url    = module.data.processing_queue_url
+  processing_queue_arn    = module.data.processing_queue_arn
+  media_bucket            = module.data.media_bucket
+  notify_configuration_id = local.notify_configuration_id
+  jwt_issuer              = module.identity.issuer
+  jwt_audience            = module.identity.client_id
 
   handlers = {
     config = {
@@ -91,6 +100,13 @@ module "application" {
       handler   = "hearally.handlers.dashboard.lambda_handler"
       route     = "GET /v1/me/{section}"
       grants    = ["edge_token", "account_read"]
+      signed_in = true
+    }
+    # The account holder plays the silenced copy of a recording.
+    listen = {
+      handler   = "hearally.handlers.recordings.listen_handler"
+      route     = "POST /v1/me/recordings/listen"
+      grants    = ["edge_token", "account_read", "redacted_read"]
       signed_in = true
     }
     # Pairing a computer with an account: see backend/src/hearally/pairing.py.
@@ -145,7 +161,7 @@ module "application" {
     allies = {
       handler   = "hearally.handlers.allies.manage_handler"
       route     = "POST /v1/me/allies/{action}"
-      grants    = ["edge_token", "allies_manage", "ses_send"]
+      grants    = ["edge_token", "allies_manage", "ses_send", "outbox_put"]
       signed_in = true
       layer     = true
       environment = {
@@ -157,8 +173,12 @@ module "application" {
     ally_link = {
       handler = "hearally.handlers.allies.link_handler"
       route   = "POST /v1/ally/{action}"
-      grants  = ["edge_token", "ally_link"]
+      grants  = ["edge_token", "ally_link", "phone_codes", "notify_send"]
       layer   = true
+      environment = {
+        NOTIFY_CONFIGURATION_ID = local.notify_configuration_id
+        PHONE_PEPPER_SECRET_ID  = "${local.name}/phone-pepper"
+      }
     }
     # Every 10 minutes: send what is due to allies, by email.
     deliver = {
@@ -167,9 +187,10 @@ module "application" {
       timeout  = 120
       layer    = true
       single   = true
-      grants   = ["deliver_outbox", "deliver_account", "link_issue", "ses_send"]
+      grants   = ["deliver_outbox", "deliver_account", "link_issue", "ses_send", "calle_key"]
       environment = {
         SES_CONFIGURATION_SET = local.name
+        CALLE_SECRET_ID       = "${local.name}/calle"
       }
     }
     # The transcription worker (backend/src/hearally/worker.py, ARCHITECTURE.md section 3).
@@ -234,18 +255,18 @@ module "observability" {
 module "identity" {
   source = "../modules/identity"
 
-  name            = local.name
-  region          = var.aws_region
-  domain_name     = local.domain_name
-  zone_id         = module.dns.zone_id
-  certificate_arn = module.dns.certificate_arn
-  callback_urls   = ["https://${local.domain_name}/dashboard/callback/"]
-  logout_urls     = ["https://${local.domain_name}/dashboard/signed-out/"]
-  stylesheet_path = "${path.root}/../../brand/cognito-hosted-ui.css"
+  name              = local.name
+  region            = var.aws_region
+  domain_name       = local.domain_name
+  zone_id           = module.dns.zone_id
+  certificate_arn   = module.dns.certificate_arn
+  callback_urls     = ["https://${local.domain_name}/dashboard/callback/"]
+  logout_urls       = ["https://${local.domain_name}/dashboard/signed-out/"]
+  stylesheet_path   = "${path.root}/../../brand/cognito-hosted-ui.css"
   terms_url         = "https://${local.domain_name}/terms/"
   branding_settings = jsonencode(jsondecode(file("${path.root}/../../brand/cognito-managed-login.json")))
-  privacy_url     = "https://${local.domain_name}/privacy/"
-  prefix_domain   = "${local.name}-${data.aws_caller_identity.current.account_id}"
+  privacy_url       = "https://${local.domain_name}/privacy/"
+  prefix_domain     = "${local.name}-${data.aws_caller_identity.current.account_id}"
 
   ses_identity_arn = module.messaging.email_identity_arn
 }

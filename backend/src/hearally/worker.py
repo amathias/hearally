@@ -35,9 +35,11 @@ from datetime import UTC, datetime
 from typing import Any, Protocol
 
 from hearally.audio import incoming_key
-from hearally.judgement import CALL_TODAY, DAILY, PRIORITY, Decision
+from hearally.judgement import CALL_TODAY, DAILY, NEVER_HELD, PRIORITY, Decision
 from hearally.learning import PREFIX as LEARNED_PREFIX
 from hearally.learning import TEACHES, check
+from hearally.topics import SORT_KEY as TOPICS_KEY
+from hearally.topics import mentioned
 from hearally.transcription import (
     Recording,
     parse_transcript,
@@ -144,6 +146,7 @@ class Account(Protocol):
         self, account_id: str, sort_key: str, fields: dict[str, Any]
     ) -> None: ...
     def learned(self, account_id: str) -> list[dict[str, Any]]: ...
+    def topics(self, account_id: str) -> list[str]: ...
     def note_learned(self, account_id: str, pattern_id: str, at: str) -> None: ...
 
 
@@ -182,6 +185,12 @@ class DynamoAccount:
             ExpressionAttributeValues={":pk": f"USER#{account_id}", ":sk": LEARNED_PREFIX},
         )
         return list(page.get("Items", []))
+
+    def topics(self, account_id: str) -> list[str]:
+        item = self._table.get_item(
+            Key={"pk": f"USER#{account_id}", "sk": TOPICS_KEY}, ConsistentRead=True
+        ).get("Item")
+        return [str(t) for t in (item or {}).get("topics", [])]
 
     def note_learned(self, account_id: str, pattern_id: str, at: str) -> None:
         """Count a use. Never renews the pattern, and never recreates one the
@@ -420,31 +429,38 @@ class Collector:
         decisions = self._judge(
             segments, priority_available=self._account.priority_available(account, day)
         )
-        stored = self._store(account, entry, decisions, day)
+        stored = self._store(account, entry, decisions, day, segments)
 
         # The silenced copy is what Hearally keeps; the original goes as soon
         # as it exists (AGENTS.md). Without it, the original is left to the
         # lifecycle rule rather than kept unredacted any longer than that.
-        if self._exists(redacted_key(account, event)):
+        redacted = self._exists(redacted_key(account, event))
+        if redacted:
             self._s3.delete_object(Bucket=self._bucket, Key=incoming_key(account, event))
         # Raw transcripts are never kept.
         self._s3.delete_object(Bucket=self._bucket, Key=key)
-        self._account.set_recording_status(
-            account,
-            recording_sort_key(entry),
-            {
-                "status": "transcribed",
-                "items": stored["items"],
-                "held_back": stored["held_back"],
-                "transcribed_at": datetime.fromtimestamp(self._clock(), UTC)
-                .isoformat()
-                .replace("+00:00", "Z"),
-            },
-        )
+        status: dict[str, Any] = {
+            "status": "transcribed",
+            "items": stored["items"],
+            "held_back": stored["held_back"],
+            "transcribed_at": datetime.fromtimestamp(self._clock(), UTC)
+            .isoformat()
+            .replace("+00:00", "Z"),
+        }
+        if redacted:
+            # So the account holder can listen to the silenced copy
+            # (handlers/recordings.py); the dashboard never shows event_id.
+            status.update({"redacted": True, "event_id": event})
+        self._account.set_recording_status(account, recording_sort_key(entry), status)
         return True, stored["items"]
 
     def _store(
-        self, account: str, entry: dict[str, Any], decisions: list[Decision], day: str
+        self,
+        account: str,
+        entry: dict[str, Any],
+        decisions: list[Decision],
+        day: str,
+        segments: Sequence[Any] = (),
     ) -> dict[str, int]:
         counts = {"items": 0, "held_back": 0}
         stored: list[dict[str, Any]] = []
@@ -452,16 +468,28 @@ class Collector:
         expires = now + ITEM_RETENTION_SECONDS
         spoken_at = entry["recorded_at"]
         patterns = self._account.learned(account) if decisions else []
+        topics = self._account.topics(account) if decisions else []
+        said = {s.id: s.text for s in segments}
         for n, d in enumerate(decisions):
             item_id = hashlib.sha256(f"{entry['event_id']}:{n}".encode()).hexdigest()[:16]
-            if d.outcome == "held_back":
+            held_reason = d.reasons[0] if d.outcome == "held_back" and d.reasons else ""
+            # Topics that never leave (topics.py): the account holder's own
+            # list, checked against the summary and what was said.
+            if d.outcome != "held_back" and topics and d.candidate.category not in NEVER_HELD:
+                texts = [d.candidate.summary] + [said.get(i, "") for i in d.candidate.segment_ids]
+                if mentioned(texts, topics):
+                    held_reason = "your_topic"
+            if d.outcome == "held_back" or held_reason:
+                # Kept for the account holder alone, who can send it anyway.
                 self._account.put(
                     account,
                     f"HELDBACK#{spoken_at}#{item_id}",
                     {
                         "id": item_id,
                         "spoken_at": spoken_at,
-                        "reason": d.reasons[0] if d.reasons else "",
+                        "reason": held_reason,
+                        "category": d.candidate.category,
+                        "summary": d.candidate.summary,
                         "ttl_epoch": expires,
                     },
                 )

@@ -184,6 +184,20 @@ class AllyLinkTests(AllyTestCase):
         self.links.dismiss(token, "0" * 15 + "1", "was_me")
         self.assertEqual(self.learned(), [])
 
+    def test_an_ally_sets_their_own_schedule(self) -> None:
+        ally = self.confirmed()
+        token = self.mailer.token()
+        self.assertEqual(self.links.view(token)["settings"]["quiet_start"], "21:00")
+        saved = self.links.settings(
+            token, {"quiet_start": "22:30", "digest_time": "07:30", "timezone": "Europe/London"}
+        )
+        self.assertEqual((saved["quiet_start"], saved["quiet_end"]), ("22:30", "08:00"))
+        stored = self.repo.ally(SUB, ally["id"]) or {}
+        self.assertEqual((stored["digest_time"], stored["timezone"]), ("07:30", "Europe/London"))
+        for bad in ({"quiet_start": "25:00"}, {"timezone": "Mars/Base"}, {"level": "off"}):
+            with self.subTest(bad=bad), self.assertRaises(ValidationError):
+                self.links.settings(token, bad)
+
     def test_the_account_holder_can_remove_what_was_learned(self) -> None:
         entry = dict(item("call_today"), signals=[])
         self.links.dismiss(self.shown(entry), entry["id"], "handled_it")
@@ -194,6 +208,44 @@ class AllyLinkTests(AllyTestCase):
             self.allies.forget(SUB, pattern["id"])
         with self.assertRaises(ValidationError):
             self.allies.forget(SUB, "not-an-id")
+
+
+class PreferenceTests(AllyTestCase):
+    def moment(self, summary: str | None = "Talked about the house sale.") -> dict[str, Any]:
+        record: dict[str, Any] = {
+            "id": "c" * 16,
+            "spoken_at": "2026-09-30T19:39:00+00:00",
+            "reason": "your_topic",
+            "category": "other",
+            "ttl_epoch": 1_800_000_000,
+        }
+        if summary:
+            record["summary"] = summary
+        self.repo.put(SUB, f"HELDBACK#{record['spoken_at']}#{record['id']}", record)
+        return record
+
+    def test_topics_replace_the_whole_list(self) -> None:
+        self.assertEqual(self.allies.set_topics(SUB, ["House sale", "house sale"]), ["House sale"])
+        stored = self.repo.records[(f"USER#{SUB}", "BLOCKLIST")]
+        self.assertEqual(stored["topics"], ["House sale"])
+
+    def test_a_released_moment_joins_the_next_daily_list_once(self) -> None:
+        self.confirmed()
+        moment = self.moment()
+        item = self.allies.release(SUB, moment["id"])
+        self.assertEqual((item["grade"], item["released"]), ("daily", True))
+        self.assertIn(
+            (f"USER#{SUB}", f"ITEM#{moment['spoken_at']}#{moment['id']}"), self.repo.records
+        )
+        [queued] = [v for (pk, _), v in self.repo.records.items() if pk == "OUTBOX"]
+        self.assertEqual(queued["kind"], "digest")
+        with self.assertRaises(AllyNotFoundError):
+            self.allies.release(SUB, moment["id"])
+
+    def test_a_moment_without_details_cannot_be_released(self) -> None:
+        moment = self.moment(summary=None)
+        with self.assertRaises(ValidationError):
+            self.allies.release(SUB, moment["id"])
 
 
 class PlanningTests(AllyTestCase):
@@ -250,6 +302,10 @@ class DeliveryTests(AllyTestCase):
             (mail["to"], mail["subject"]), ("dana@example.com", "Hearally: today's list")
         )
         self.assertIn("Summary 1", mail["text"])
+        # The HTML: titled, the ally greeted by name, summaries as a list.
+        self.assertIn("Today&#x27;s list", mail["html"])
+        self.assertIn("Dana</span>,", mail["html"])
+        self.assertIn("<li", mail["html"])
         self.assertIn("Summary 2", mail["text"])
         self.assertIn(NOT_EMERGENCY, mail["text"])
         self.assertIn("nothing", mail["text"])
@@ -302,6 +358,8 @@ class HandlerTests(AllyTestCase):
         self.assertEqual(response["statusCode"], 200)
         response = handle_manage(request("forget", {"pattern_id": "a" * 16}), edge, self.allies)
         self.assertEqual(response["statusCode"], 404)
+        response = handle_manage(request("topics", {"topics": ["lawyer"]}), edge, self.allies)
+        self.assertEqual(json.loads(response["body"]), {"topics": ["lawyer"]})
         self.assertEqual(
             handle_manage(request("add", {}, sub=None), edge, self.allies)["statusCode"], 401
         )

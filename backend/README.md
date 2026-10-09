@@ -1,18 +1,40 @@
 # Hearally backend
 
-The first backend slice implements two Lambda handlers:
+One Python 3.12 package, `hearally`, deployed as one AWS Lambda function per handler (arm64), each with its own IAM role. How the pieces fit together is in [docs/ARCHITECTURE.md](../docs/ARCHITECTURE.md); code comments cite its sections.
 
-- `hearally.handlers.config.lambda_handler` for public runtime configuration.
-- `hearally.handlers.ingest.lambda_handler` for authenticated collector events.
+## Handlers (`src/hearally/handlers/`)
 
-The ingest handler validates the exact request signature, schema, idempotency key, and mandatory privacy flags. It stores a content-free deduplication record and places locally filtered/redacted conversation text on a short-retention encrypted FIFO queue.
+| Area | Handlers |
+|---|---|
+| Public | `config` (runtime configuration) |
+| Recordings in | `plaud_link` (Plaud sign-in), `plaud_import` (every 15 minutes), `collector` (upload and ingest from a paired computer), `pairing` (pairing codes, the acknowledgement) |
+| Transcription | `worker` (dispatch every 30 minutes, collect every 10) |
+| Dashboard | `dashboard` (`GET /v1/me/{section}`), `recordings` (listen to the silenced copy) |
+| Allies | `allies` (managed by the account holder; the ally's own link; delivery every 10 minutes) |
+| Scam library | `scam_refresh` (weekly, with Tavily) |
 
-The handler must never log its request body. Downstream extraction consumes the queue, calls Bedrock with invocation logging disabled, and persists only structured metadata and short paraphrases.
+## Main modules
 
-`contact_channels.py` implements independent email-link and six-digit SMS challenges, HMAC-only proof storage, expiry, attempt/send limits, and channel ownership claims. Verification remains separate from best-effort acknowledgement and channel consent. `providers/` contains AWS SES/Notify adapters and mock/production CALL-E adapters; the voice delivery service blocks calls unless the phone is verified and voice opt-in is current.
+- `judgement.py`: Nemotron on Nebius Token Factory describes what was said; code applies the grades, the confidence gate and the dignity filter.
+- `transcription.py`, `nebius_jobs.py`, `worker.py`: the Parakeet job on Nebius AI Cloud, and storing what it found.
+- `learning.py`: what allies said was nothing becomes learned patterns. `topics.py`: topics that never leave.
+- `allies.py`: allies, their links and consent, planning and sending email through Amazon SES.
+- `scam_library.py`, `scam_discovery.py`: known scam scripts, matched with Qwen3 embeddings and kept current with Tavily.
+- `plaud_link.py`, `plaud_import.py`, `pairing.py`, `audio.py`: the two ways recordings arrive.
+- `contact_channels.py`, `providers/aws_channels.py`: email and text-message verification codes (Amazon SES and AWS End User Messaging). Tested, but not yet used by any handler.
 
-Run the dependency-free unit suite with:
+## Rules
+
+- Never log a request body, a transcript, a summary, a link or anything said. Runs report counts.
+- Product rules (the heads-up budget, quiet hours, the dignity filter, learned patterns) live in code and conditional writes, never in a model prompt.
+
+## Checks
+
+From `backend/`:
 
 ```powershell
-python -m unittest discover -s tests -v
+pip install -e ".[dev]"
+python -m unittest discover -s tests
+ruff check src tests
+mypy src
 ```

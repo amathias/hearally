@@ -54,6 +54,11 @@ variable "media_bucket" {
   type = string
 }
 
+variable "notify_configuration_id" {
+  description = "The AWS End User Messaging Notify configuration that texts allies their phone codes (created by backend/src/hearally/configure_notify.py)."
+  type        = string
+}
+
 variable "handlers" {
   description = "One entry per Lambda. All share a single zip; handler selects the entry point. grants names what the handler may do: edge_token, upload_sign, upload_verify, reservations, enqueue, account_read, pairing_issue, pairing_redeem, device_auth, computer_revoke, nebius_key, tavily_key, scam_library. A handler has a route (behind the API) or a schedule (an EventBridge expression), not both."
   type = map(object({

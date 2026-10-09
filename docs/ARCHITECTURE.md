@@ -14,7 +14,7 @@ The account holder owns the data and the rules. Allies have no account, no app a
 
 Two ways, both ending in the same intake:
 
-- **Plaud sign-in.** The account holder signs in to Plaud once, on Plaud's own consent page (OAuth 2.1 with PKCE, through Plaud's hosted MCP server). Hearally's servers keep the sign-in, apart from every other record, and every 15 minutes list recordings made **after** the account connected and fetch their audio. Still labelled as a test.
+- **Plaud sign-in.** The account holder signs in to Plaud once, on Plaud's own consent page (OAuth 2.1 with PKCE, through Plaud's hosted MCP server). Hearally's servers keep the sign-in, apart from every other record, and every 15 minutes list recordings made **after** the account connected and fetch their audio. Labelled a preview: Plaud has not yet published terms for services using it this way.
 - **The collector.** A small Node program on a computer, paired with the account by a one-use code, sends recordings exported from Plaud into one folder (`docs/contracts/collector-pairing.md`).
 
 Either way, the audio is stored at `incoming/<account>/<sha256>` with its checksum verified, a short record is kept for the dashboard, and the recording is queued (SQS FIFO) for transcription. Nothing is brought in until the account holder has accepted the acknowledgement (section 9).
@@ -27,6 +27,7 @@ NVIDIA's open **Parakeet TDT 0.6B v3** runs as a GPU job on **Nebius AI Cloud**,
 - **The job**: converts the audio, cuts long recordings at quiet points, transcribes them with word timings and word confidence, and **silences account and card numbers in the audio itself** (any run of number words worth four or more digits, found by word timing). It uploads the transcript and the silenced copy.
 - **Collect, every 10 minutes**: for each finished job, judge the transcript (section 4), store the results, delete the **original** audio once the silenced copy exists, and delete the transcript. **Raw transcripts are never kept.**
 - A failed job is retried once with fresh links. Each step runs one at a time.
+- **Listening to the silenced copy**: for the 7 days it is kept, the account holder can play it from Integrations → Recordings received. The API signs a 10-minute link to that one file, built from the caller's own account, never from the request (`backend/src/hearally/handlers/recordings.py`); the function may read `redacted/` and nothing else, and the site's content security policy allows audio from the media bucket only.
 
 ## 4. The judgement
 
@@ -59,7 +60,8 @@ A recorder that runs through someone's day captures things that are nobody else'
 | **Relevant** | Normal path | Paraphrased to the minimum; never quoted, never clipped |
 | **Not relevant** | Normal path | **Dropped** |
 
-- What was held back is listed for the account holder alone.
+- **Topics that never leave**: the account holder names topics under Preferences; an item mentioning one, in its summary or in what was said, is held back the same way (`backend/src/hearally/topics.py`). Scam pressure and requests for help are exempt here too.
+- What was held back is listed for the account holder alone, who can **send it anyway**: it then joins the allies' next daily list, never sooner.
 
 ## 7. Allies and what gets sent
 
@@ -68,14 +70,18 @@ A recorder that runs through someone's day captures things that are nobody else'
 - **Allies consent too.** Before anything reaches them, an ally reads five short statements (not an emergency service, will miss things, may be nothing, nobody is on duty, can stop at any time), ticks one box agreeing to them and to the terms of use and privacy policy, and confirms. Each decision is recorded, append-only.
 - **Delivery**, enforced in code:
   - a **heads-up** goes at once to every confirmed ally who hears heads-ups;
-  - **worth a call today** goes to the first ally, held to the end of their quiet hours (21:00 to 08:00 in their time zone);
+  - **worth a call today** goes to the first ally, held to the end of their quiet hours (21:00 to 08:00 in their time zone unless they change them, with their daily-list time, on their own page);
   - everything else arrives in a **daily list** at 18:00 their time.
 - A delivery job claims each due message exactly once (a conditional delete), checks the ally is still confirmed, sends, and logs it. The account holder sees every message under **"what your allies heard"**.
 - **"This was nothing"**: the ally picks a reason, which is kept with the item. If the item was a heads-up or worth a call today, what set it off (its category and pressure signals) becomes a **learned pattern** (`backend/src/hearally/learning.py`). A later item of the same kind that brings nothing new goes to the daily list instead, never further, and does not use the day's heads-up. One with a new element is graded as usual, and its message says what was new. Patterns last 90 days from the latest dismissal; the account holder sees them all under Preferences, "What Hearally has learned", and can remove any of them. Applied in code after the model has spoken; the model is never told.
 
 ## 8. Messages
 
-Email through **Amazon SES** from `hearally.com`. Text messages to allies are not part of the preview; one-time codes for verifying phone numbers, when used, go through AWS End User Messaging. Every message carries "not an emergency service" and a link to say it was nothing. Providers sit behind interfaces.
+Email through **Amazon SES** from `hearally.com`. Every message carries "not an emergency service" and a link to say it was nothing. Providers sit behind interfaces.
+
+- **Heads-up calls** (`backend/src/hearally/calls.py`, `ally_phone.py`). An ally who hears heads-ups can choose to be phoned for one, from their own page. First they prove the number: a six-digit code by text through **AWS End User Messaging Notify** (US only; only a keyed hash of the code is stored, for ten minutes, five tries, three texts a day). Then they tick a box to turn calls on; every change is recorded, append-only. The call is placed by **CALL-E**: a short automated notice ("Hi Dana, this is Hearally with a notice about Aaron"), a brief summary of the heads-up, a request to check their email, whose link opens the ally's page, and "Hearally is not an emergency service". It asks for nothing and ends.
+- Enforced in code: heads-ups only; only confirmed allies with a proved number and calls on; never during the ally's quiet hours (the email still goes); at most **10 calls per account per calendar month** during the preview, a conditional counter claimed before each call and given back if the call cannot be placed. Each call, or why it was not placed, is logged under "what your allies heard".
+- Text messages to allies are not part of the preview, apart from that one code.
 
 ## 9. The acknowledgement
 
@@ -86,6 +92,7 @@ Before any recording comes in, the account holder reads four points (not an emer
 - **Raw transcripts are never stored.** Summaries, structured metadata and the silenced audio are.
 - **Retention**: unredacted audio is deleted once the silenced copy exists (a lifecycle rule is the backstop, within about two days); silenced audio 7 days; summaries, heads-ups, held-back moments and the recordings list 90 days.
 - **Logs** never contain request bodies, transcripts, audio links, pairing codes, device tokens, ally contact details or link tokens.
+- **Website analytics**: Google Analytics 4 on every page (`web/public/analytics.js`), loaded last so the ally page has already moved its token out of the address bar. It sends only page paths, never a query string or fragment (where ally-link tokens and sign-in codes travel), no page content and no user ID; Google signals and ad personalisation are off. The content security policy allows Google's tag and collection endpoints and nothing else of Google's.
 - **Least privilege**: one IAM role per function, granted only the database partitions and storage prefixes it uses. The Plaud sign-in is kept in its own partition, out of reach of the dashboard.
 - **Product rules live in code and conditional writes**, never in model prompts: the heads-up budget, quiet hours, the dignity matrix, the confidence gate.
 

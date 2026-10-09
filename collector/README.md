@@ -2,11 +2,11 @@
 
 Moves recordings from a computer to Hearally. Node 22.13+, no dependencies.
 
-**Public preview (beta).** For the hackathon and the preview, this collector is how recordings reach Hearally. It is a stand-in: the intended path for real users is a direct connection to their Plaud account, which needs access Plaud has not opened to new services. See *Why it runs on a computer* below. The user-facing version of these instructions is at https://hearally.com/setup/.
+**Public preview (beta).** The collector is one of two ways recordings reach Hearally. Most people sign in to Plaud once from the dashboard instead; the collector is for people who would rather not, or who export recordings themselves. The user-facing version of these instructions is at https://hearally.com/setup/collector/.
 
 ## For participants: one file, no repository
 
-People using the preview never see this repository. They download one file from https://hearally.com/setup/ and run:
+People using the preview never see this repository. They download one file from https://hearally.com/setup/collector/ and run:
 
 ```bash
 node $HOME\Downloads\hearally-collector.mjs setup    # Windows PowerShell

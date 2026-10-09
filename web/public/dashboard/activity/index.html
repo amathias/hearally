@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&amp;family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/styles.css?v=e6358a864f">
+<link rel="stylesheet" href="/styles.css?v=62cc5f6cc1">
 </head>
 <body class="dashboard min-h-screen bg-sand text-ink" data-section="activity">
 <a href="#main" class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-paper focus:px-4 focus:py-2 focus:font-semibold">Skip to content</a>
@@ -29,8 +29,8 @@
   <span class="ml-2 hidden rounded bg-ink-2 px-2 py-0.5 font-sans text-xs font-semibold text-muted-dark sm:inline">Public preview (beta)</span>
   <div class="ml-auto flex min-w-0 items-center gap-3">
     <span class="hidden min-w-0 max-w-[26rem] truncate font-sans text-sm text-muted-dark sm:block"><span id="signed-in-as" class="hidden"></span></span>
-    <button id="sign-out" type="button" hidden class="rounded-md border border-line-dark px-3 py-1.5 font-sans text-sm font-semibold text-sand hover:bg-ink-2">Sign out</button>
-    <button id="menu-toggle" type="button" aria-expanded="false" aria-controls="dashboard-nav" class="rounded-md border border-line-dark px-3 py-1.5 font-sans text-sm font-semibold text-sand hover:bg-ink-2 md:hidden">Menu</button>
+    <button id="sign-out" type="button" hidden class="rounded-md border border-line-dark px-3 py-2.5 font-sans text-sm font-semibold text-sand hover:bg-ink-2">Sign out</button>
+    <button id="menu-toggle" type="button" aria-expanded="false" aria-controls="dashboard-nav" class="rounded-md border border-line-dark px-3 py-2.5 font-sans text-sm font-semibold text-sand hover:bg-ink-2 md:hidden">Menu</button>
   </div>
 </header>
 
@@ -56,7 +56,7 @@
         <ul class="space-y-0.5">
           <li><a href="/dashboard/account/" class="block rounded-md border-l-[3px] border-transparent px-3 py-2 text-muted hover:bg-paper hover:text-ink">Account &amp; billing</a></li>
         </ul>
-        <p class="mt-8 px-3 font-sans text-xs text-muted"><a href="/terms/" class="underline underline-offset-4">Terms</a> · <a href="/privacy/" class="underline underline-offset-4">Privacy</a> · <a href="mailto:info@email.famplified.com" class="underline underline-offset-4">Contact</a></p>
+        <p class="mt-8 px-3 font-sans text-sm text-muted"><a href="/setup/" class="inline-block py-2 underline underline-offset-4">Guide</a> · <a href="/terms/" class="inline-block py-2 underline underline-offset-4">Terms</a> · <a href="/privacy/" class="inline-block py-2 underline underline-offset-4">Privacy</a> · <a href="mailto:info@email.famplified.com" class="inline-block py-2 underline underline-offset-4">Contact</a></p>
       </nav>
   <main id="main" tabindex="-1" class="dashboard-main min-w-0 flex-1 px-5 py-8 md:px-10 md:py-10">
     <h1 class="text-[1.9rem] font-semibold leading-tight">Activity</h1>
@@ -69,6 +69,7 @@
 </div>
 
 <script src="/dashboard/config.js?v=9c1212e6cf"></script>
-<script src="/dashboard/app.js?v=db04e95f34"></script>
+<script src="/dashboard/app.js?v=0b407fbf52"></script>
+<script src="/analytics.js?v=462a74c892" defer></script>
 </body>
 </html>

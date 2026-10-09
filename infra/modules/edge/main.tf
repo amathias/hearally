@@ -111,11 +111,13 @@ resource "aws_cloudfront_response_headers_policy" "web" {
       override = true
       content_security_policy = join("; ", [
         "default-src 'self'",
-        "script-src 'self'",
+        # Google Analytics 4 (web/public/analytics.js): the tag, and where it reports.
+        "script-src 'self' https://www.googletagmanager.com",
         "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
         "font-src https://fonts.gstatic.com",
-        "img-src 'self' data:",
-        "connect-src 'self' https://api.${var.domain_name} ${var.sign_in_origin}",
+        "img-src 'self' data: https://*.google-analytics.com https://*.googletagmanager.com",
+        join(" ", concat(["media-src 'self'"], var.media_origins)),
+        "connect-src 'self' https://api.${var.domain_name} ${var.sign_in_origin} https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com",
         "frame-ancestors 'none'",
         "base-uri 'self'",
         "form-action 'self'",

@@ -1,9 +1,10 @@
 # Durable state for Hearally.
 #
 # What lives here: paraphrased items, structured metadata, consent records,
-# suppression patterns and redacted audio clips. What never lives here: raw
-# transcripts, unredacted audio, or anything the dignity filter held back from
-# an ally. See docs/ARCHITECTURE.md sections 6 and 11.
+# learned patterns and silenced audio. Held-back moments are kept only as short
+# summaries for the account holder alone. Raw transcripts and unredacted audio
+# pass through only while they are processed, then are deleted. See
+# docs/ARCHITECTURE.md sections 3, 6 and 11.
 
 resource "aws_dynamodb_table" "application" {
   name         = var.name
@@ -106,6 +107,33 @@ resource "aws_secretsmanager_secret" "nebius_worker_key" {
   name                    = "${var.name}/nebius-worker-key"
   description             = "Nebius AI Cloud service account key for the transcription worker"
   recovery_window_in_days = 7
+}
+
+# CALL-E, for heads-up calls to allies who chose them (backend/src/hearally/calls.py):
+# {"api_key": ...}. Created empty; filled by scripts/set-secrets.ps1 -Secret CallE.
+resource "aws_secretsmanager_secret" "calle" {
+  name                    = "${var.name}/calle"
+  description             = "CALL-E API key, for heads-up calls to allies"
+  recovery_window_in_days = 7
+}
+
+# The pepper for an ally's phone codes (backend/src/hearally/ally_phone.py): only
+# a keyed hash of a code is stored. Generated here, so nobody types it; it is in
+# the encrypted Terraform state, like every other generated value.
+resource "random_password" "phone_pepper" {
+  length  = 48
+  special = false
+}
+
+resource "aws_secretsmanager_secret" "phone_pepper" {
+  name                    = "${var.name}/phone-pepper"
+  description             = "Pepper for hashing allies' phone verification codes"
+  recovery_window_in_days = 7
+}
+
+resource "aws_secretsmanager_secret_version" "phone_pepper" {
+  secret_id     = aws_secretsmanager_secret.phone_pepper.id
+  secret_string = jsonencode({ pepper = random_password.phone_pepper.result })
 }
 
 resource "aws_secretsmanager_secret" "twilio" {

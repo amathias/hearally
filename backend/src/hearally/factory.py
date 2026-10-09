@@ -220,7 +220,40 @@ def build_ally_link_service() -> Any:
 
 
 def build_deliverer() -> Any:
+    import boto3
+
     from hearally.allies import Deliverer
+    from hearally.calls import CalleCaller
+    from hearally.secret_cache import current_field
 
     repo, mailer = _ally_parts()
-    return Deliverer(repo, mailer)
+    caller = None
+    secret_id = os.getenv("CALLE_SECRET_ID", "").strip()
+    if secret_id:
+        # Heads-up calls (calls.py). An empty secret fails each call, logged.
+        caller = CalleCaller(current_field(boto3.client("secretsmanager"), secret_id, "api_key"))
+    return Deliverer(repo, mailer, caller=caller)
+
+
+def build_ally_phone_service(links: Any) -> Any:
+    """An ally's number, proved by a code by text (ally_phone.py)."""
+    import boto3
+
+    from hearally.ally_phone import AllyPhoneService
+    from hearally.providers.aws_channels import AwsNotifySmsSender
+    from hearally.secret_cache import current_field
+
+    configuration = os.getenv("NOTIFY_CONFIGURATION_ID", "").strip()
+    pepper_secret = os.getenv("PHONE_PEPPER_SECRET_ID", "").strip()
+    if not configuration or not pepper_secret:
+        raise ConfigurationError("Hearally is not configured for phone numbers")
+    table = boto3.resource("dynamodb").Table(Settings.from_environment().table_name)
+    from hearally.allies import DynamoAllyRepository
+
+    sms = AwsNotifySmsSender(
+        boto3.client("pinpoint-sms-voice-v2"),
+        configuration_id=configuration,
+        template_id=os.getenv("NOTIFY_TEMPLATE_ID", "notify-code-verification-english-001"),
+    )
+    pepper = current_field(boto3.client("secretsmanager"), pepper_secret, "pepper")
+    return AllyPhoneService(links, DynamoAllyRepository(table), sms, pepper)

@@ -1,5 +1,25 @@
 @import "tailwindcss";
 
+/* Dashboard tables on phones: each row becomes a block, each cell labelled
+   with its column (app.js sets data-label), so nothing hides off-screen. */
+@media (width < 40rem) {
+  table.stack thead { display: none; }
+  table.stack, table.stack tbody, table.stack tr, table.stack td { display: block; width: 100%; }
+  table.stack tr { padding-block: 0.5rem; }
+  table.stack td { padding: 0.35rem 1rem; }
+  table.stack td[data-label]:not([data-label=""])::before {
+    content: attr(data-label);
+    display: block;
+    margin-bottom: 0.15rem;
+    font-family: var(--font-sans);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-muted);
+  }
+}
+
 /* Brand tokens. These mirror brand/palette.css — that file stays canonical.
    Amber is the ally, teal or sand is the account holder. See brand/README.md. */
 @theme {

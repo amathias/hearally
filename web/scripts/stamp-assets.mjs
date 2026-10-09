@@ -16,7 +16,7 @@ import { fileURLToPath } from "node:url";
 
 const publicDir = join(dirname(fileURLToPath(import.meta.url)), "..", "public");
 
-const ASSETS = ["/styles.css", "/dashboard/app.js", "/dashboard/config.js", "/setup/setup.js", "/a/ally.js"];
+const ASSETS = ["/styles.css", "/dashboard/app.js", "/dashboard/config.js", "/setup/setup.js", "/a/ally.js", "/video.js", "/analytics.js"];
 
 const stamps = Object.fromEntries(
   ASSETS.map((asset) => {

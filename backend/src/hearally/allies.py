@@ -31,6 +31,7 @@ from __future__ import annotations
 
 import hashlib
 import html
+import logging
 import re
 import secrets
 import time
@@ -40,9 +41,14 @@ from datetime import UTC, datetime, timedelta
 from typing import Any, Protocol
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
+from hearally.calls import MONTHLY_CALLS, Caller, CallMessage, month
 from hearally.learning import PREFIX as LEARNED_PREFIX
 from hearally.learning import new_element_line, pattern_from
 from hearally.models import ValidationError
+from hearally.topics import SORT_KEY as TOPICS_KEY
+from hearally.topics import parse_topics
+
+LOGGER = logging.getLogger(__name__)
 
 LEVELS = ("off", "alerts_only", "alerts_and_items")
 HEARS_ALERTS = frozenset({"alerts_only", "alerts_and_items"})
@@ -186,6 +192,9 @@ class AllyRepository(Protocol):
     def claim_outbox(self, sort_key: str) -> dict[str, Any] | None: ...
     def put(self, sub: str, sort_key: str, item: dict[str, Any]) -> None: ...
     def delete(self, sub: str, sort_key: str) -> bool: ...
+    def held_back(self, sub: str) -> list[dict[str, Any]]: ...
+    def claim_call(self, sub: str, month: str, limit: int, expires: int) -> bool: ...
+    def release_call(self, sub: str, month: str) -> None: ...
 
 
 class InMemoryAllyRepository:
@@ -268,6 +277,25 @@ class InMemoryAllyRepository:
 
     def delete(self, sub: str, sort_key: str) -> bool:
         return self.records.pop((self._user(sub), sort_key), None) is not None
+
+    def held_back(self, sub: str) -> list[dict[str, Any]]:
+        return [
+            dict(v, sk=sk)
+            for (pk, sk), v in self.records.items()
+            if pk == self._user(sub) and sk.startswith("HELDBACK#")
+        ]
+
+    def claim_call(self, sub: str, month: str, limit: int, expires: int) -> bool:
+        budget = self.records.setdefault((self._user(sub), f"CALLBUDGET#{month}"), {"used": 0})
+        if budget["used"] >= limit:
+            return False
+        budget.update(used=budget["used"] + 1, ttl_epoch=expires)
+        return True
+
+    def release_call(self, sub: str, month: str) -> None:
+        budget = self.records.get((self._user(sub), f"CALLBUDGET#{month}"))
+        if budget and budget["used"] > 0:
+            budget["used"] -= 1
 
 
 class DynamoAllyRepository:
@@ -396,6 +424,35 @@ class DynamoAllyRepository:
         )
         return bool(old.get("Attributes"))
 
+    def held_back(self, sub: str) -> list[dict[str, Any]]:
+        return [_plain(i) for i in self._query(f"USER#{sub}", "HELDBACK#")]
+
+    def claim_call(self, sub: str, month: str, limit: int, expires: int) -> bool:
+        """The month's call budget, as a conditional counter: the update that
+        would pass ``limit`` fails, so two runs cannot both take the last call."""
+        try:
+            self._table.update_item(
+                Key={"pk": f"USER#{sub}", "sk": f"CALLBUDGET#{month}"},
+                UpdateExpression="ADD used :one SET ttl_epoch = :ttl",
+                ConditionExpression="attribute_not_exists(used) OR used < :limit",
+                ExpressionAttributeValues={":one": 1, ":limit": limit, ":ttl": expires},
+            )
+        except self._table.meta.client.exceptions.ConditionalCheckFailedException:
+            return False
+        return True
+
+    def release_call(self, sub: str, month: str) -> None:
+        """Give back a call that could not be placed."""
+        try:
+            self._table.update_item(
+                Key={"pk": f"USER#{sub}", "sk": f"CALLBUDGET#{month}"},
+                UpdateExpression="ADD used :minus",
+                ConditionExpression="used > :zero",
+                ExpressionAttributeValues={":minus": -1, ":zero": 0},
+            )
+        except self._table.meta.client.exceptions.ConditionalCheckFailedException:
+            return
+
 
 def _plain(item: Mapping[str, Any]) -> dict[str, Any]:
     from decimal import Decimal
@@ -444,16 +501,69 @@ class SesMailer:
         return str(self._client.send_email(**kwargs)["MessageId"])
 
 
-def _html(paragraphs: Sequence[str], link: str, link_text: str) -> str:
-    body = "".join(f"<p>{html.escape(p)}</p>" for p in paragraphs)
-    button = (
-        f'<p><a href="{html.escape(link, quote=True)}" style="display:inline-block;'
-        "background:#1F6F6B;color:#ffffff;padding:10px 18px;border-radius:8px;"
-        f'text-decoration:none;font-weight:600">{html.escape(link_text)}</a></p>'
+# Brand colours (brand/palette.css). Amber names the ally: the darker
+# amber-text shade, because brand amber on paper fails contrast.
+_INK, _AMBER, _AMBER_TEXT = "#14243A", "#E8934A", "#996131"
+_SAND, _PAPER, _LINE, _TEAL, _MUTED = "#F6F1E8", "#FDFCFA", "#E8E2D8", "#1F6F6B", "#5A6672"
+
+
+def _html(
+    paragraphs: Sequence[str],
+    link: str,
+    link_text: str,
+    *,
+    title: str = "",
+    greet: str = "",
+    bullets: Sequence[str] = (),
+    after: Sequence[str] = (),
+) -> str:
+    """The email's HTML: a table layout, inline styles and no images, so it
+    looks the same in every mail app, with images blocked or not."""
+    esc = html.escape
+    sans = "font-family:Arial,Helvetica,sans-serif"
+    head = (
+        f'<tr><td style="background:{_INK};padding:18px 24px;border-radius:12px 12px 0 0">'
+        f'<span style="{sans};font-size:22px;font-weight:700;color:{_AMBER}">hearally</span>'
+        "</td></tr>"
     )
-    foot = f'<p style="color:#5A6672;font-size:13px">{html.escape(NOT_EMERGENCY)}</p>'
-    style = "font-family:Arial,sans-serif;color:#14243A;max-width:520px"
-    return f'<div style="{style}">{body}{button}{foot}</div>'
+    parts = []
+    if title:
+        parts.append(
+            f'<p style="margin:0 0 14px;font-family:Georgia,serif;font-size:22px;'
+            f'line-height:1.25;font-weight:700">{esc(title)}</p>'
+        )
+    if greet:
+        parts.append(
+            f'<p style="margin:0 0 14px">Hi <span style="color:{_AMBER_TEXT};font-weight:700">'
+            f"{esc(greet)}</span>,</p>"
+        )
+    parts += [f'<p style="margin:0 0 14px">{esc(p)}</p>' for p in paragraphs]
+    if bullets:
+        parts.append(
+            '<ul style="margin:0 0 14px;padding-left:20px">'
+            + "".join(f'<li style="margin:0 0 8px">{esc(b)}</li>' for b in bullets)
+            + "</ul>"
+        )
+    parts += [f'<p style="margin:0 0 14px">{esc(p)}</p>' for p in after]
+    parts.append(
+        f'<p style="margin:22px 0 4px"><a href="{esc(link, quote=True)}" style="display:'
+        f"inline-block;background:{_TEAL};color:#ffffff;padding:12px 20px;border-radius:8px;"
+        f'text-decoration:none;font-weight:700">{esc(link_text)}</a></p>'
+    )
+    card = (
+        f'<tr><td style="background:{_PAPER};padding:24px;border:1px solid {_LINE};'
+        f"border-top:0;border-radius:0 0 12px 12px;{sans};font-size:16px;line-height:1.5;"
+        f'color:{_INK}">{"".join(parts)}</td></tr>'
+    )
+    foot = (
+        f'<tr><td style="padding:16px 24px;{sans};font-size:13px;line-height:1.5;'
+        f'color:{_MUTED}">{esc(NOT_EMERGENCY)}</td></tr>'
+    )
+    return (
+        f'<div style="background:{_SAND};padding:24px 12px">'
+        '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" '
+        f'style="max-width:560px;margin:0 auto">{head}{card}{foot}</table></div>'
+    )
 
 
 def ally_link(token: str) -> str:
@@ -516,18 +626,24 @@ class AllyService:
         token = self._issue_link(sub, ally)
         link = ally_link(token)
         paragraphs = [
-            f"Hi {ally['name']},",
             f"{holder} uses Hearally, which passes along things that were mentioned out loud "
             f"near their Plaud recorder to the people they choose. {holder} would like you to "
             "be one of them.",
             "Before anything reaches you, please read what Hearally is and is not, and say "
             "whether you agree. You can stop at any time.",
         ]
+        text = "\n\n".join([f"Hi {ally['name']},", *paragraphs])
         self._mailer.send(
             to=ally["email"],
             subject=f"{holder} would like you as an ally on Hearally",
-            text="\n\n".join(paragraphs) + f"\n\nRead and decide: {link}\n\n{NOT_EMERGENCY}",
-            html_body=_html(paragraphs, link, "Read and decide"),
+            text=text + f"\n\nRead and decide: {link}\n\n{NOT_EMERGENCY}",
+            html_body=_html(
+                paragraphs,
+                link,
+                "Read and decide",
+                title=f"{holder} would like you as an ally",
+                greet=ally["name"],
+            ),
             purpose="ally-invite",
         )
         self._repo.update_ally(sub, ally["id"], {"invited_at": iso(self._clock())})
@@ -585,6 +701,43 @@ class AllyService:
             self._repo.delete_link(ally["link_digest"])
         self._repo.delete_ally(sub, ally_id)
 
+    def set_topics(self, sub: str, topics: Any) -> list[str]:
+        """Topics that never leave (topics.py). Replaces the whole list."""
+        cleaned = parse_topics(topics)
+        self._repo.put(sub, TOPICS_KEY, {"topics": cleaned, "updated_at": iso(self._clock())})
+        return cleaned
+
+    def release(self, sub: str, moment_id: Any) -> dict[str, Any]:
+        """Send a held-back moment anyway, at the account holder's word.
+
+        It becomes an ordinary item in the next daily list: never a heads-up,
+        never sooner. The held-back record goes, so it cannot be sent twice."""
+        if not isinstance(moment_id, str) or not re.fullmatch(r"[0-9a-f]{16}", moment_id):
+            raise ValidationError("id is not recognised")
+        found = next((m for m in self._repo.held_back(sub) if m.get("id") == moment_id), None)
+        if not found:
+            raise AllyNotFoundError
+        if not found.get("summary"):
+            raise ValidationError("This moment was held back before details were kept")
+        if not self._repo.delete(sub, str(found["sk"])):
+            raise AllyNotFoundError  # released a moment ago
+        now = self._clock()
+        item = {
+            "id": moment_id,
+            "spoken_at": found["spoken_at"],
+            "category": found.get("category", "other"),
+            "grade": "daily",
+            "summary": found["summary"],
+            "signals": [],
+            "released": True,
+            "language": "en",
+            "ttl_epoch": found.get("ttl_epoch", int(now) + 90 * 86400),
+        }
+        sort_key = f"ITEM#{found['spoken_at']}#{moment_id}"
+        self._repo.put(sub, sort_key, item)
+        plan_deliveries(self._repo, sub, [{**item, "sk": sort_key}], now)
+        return item
+
     def forget(self, sub: str, pattern_id: Any) -> None:
         """Remove one thing Hearally learned from "this was nothing"."""
         if not isinstance(pattern_id, str) or not re.fullmatch(r"[0-9a-f]{16}", pattern_id):
@@ -609,6 +762,10 @@ class AllyLinkService:
         self._repo = repo
         self._clock = clock
 
+    def resolve(self, token: Any) -> tuple[str, dict[str, Any]]:
+        """The account and ally a live link belongs to (for ally_phone.py)."""
+        return self._resolve(token)
+
     def _resolve(self, token: Any) -> tuple[str, dict[str, Any]]:
         if not isinstance(token, str) or not 20 <= len(token) <= 100:
             raise LinkInvalidError
@@ -627,6 +784,14 @@ class AllyLinkService:
             "ally": ally["name"],
             "status": ally.get("status"),
             "level": ally.get("level"),
+            "settings": {k: ally.get(k) or v for k, v in DEFAULTS.items()},
+            "phone": {
+                "last4": ally.get("phone_last4") or "",
+                "verified": bool(ally.get("phone") and ally.get("phone_verified_at")),
+                "calls": bool(ally.get("calls")),
+                "pending": bool(ally.get("pending_phone"))
+                and int(ally.get("pending_expires") or 0) > self._clock(),
+            },
             "items": [],
         }
         if ally.get("status") == "confirmed" and ally.get("level") != "off":
@@ -655,6 +820,24 @@ class AllyLinkService:
 
     def confirm(self, token: Any) -> None:
         self._set(token, {"status": "confirmed", "confirmed_at": iso(self._clock())}, "confirmed")
+
+    def settings(self, token: Any, data: Any) -> dict[str, str]:
+        """The ally's own quiet hours, daily-list time and time zone."""
+        sub, ally = self._resolve(token)
+        if not isinstance(data, Mapping) or set(data) - set(DEFAULTS):
+            raise ValidationError("Unknown fields")
+        fields = {
+            "timezone": _timezone(data.get("timezone", ally.get("timezone"))),
+            "quiet_start": _clock_time(
+                data.get("quiet_start", ally.get("quiet_start")), "quiet_start"
+            ),
+            "quiet_end": _clock_time(data.get("quiet_end", ally.get("quiet_end")), "quiet_end"),
+            "digest_time": _clock_time(
+                data.get("digest_time", ally.get("digest_time")), "digest_time"
+            ),
+        }
+        self._repo.update_ally(sub, ally["id"], fields)
+        return fields
 
     def decline(self, token: Any) -> None:
         self._set(token, {"status": "declined"}, "declined")
@@ -735,8 +918,38 @@ def plan_deliveries(
                 }
             )
             queued += 1
+            if kind == "heads_up" and wants_call(ally) and not in_quiet_hours(ally, now):
+                repo.put_outbox(
+                    {
+                        "sk": f"{int(due):012d}#{sub}#{ally['id']}#{item['id']}#call",
+                        "due_epoch": int(due),
+                        "account_id": sub,
+                        "ally_id": ally["id"],
+                        "item_sk": item["sk"],
+                        "kind": "call",
+                        "ttl_epoch": int(due) + 7 * 86400,
+                    }
+                )
+                queued += 1
     return queued
 
+
+def wants_call(ally: Mapping[str, Any]) -> bool:
+    """A confirmed ally who hears heads-ups, proved their number, and chose calls."""
+    return bool(
+        ally.get("status") == "confirmed"
+        and ally.get("level") in HEARS_ALERTS
+        and ally.get("calls")
+        and ally.get("phone")
+        and ally.get("phone_verified_at")
+    )
+
+
+TITLES = {
+    "heads_up": "A call worth knowing about",
+    "call_today": "Worth a call today",
+    "digest": "Today's list",
+}
 
 SUBJECTS = {
     "heads_up": "Hearally: a call worth knowing about",
@@ -747,11 +960,16 @@ SUBJECTS = {
 
 class Deliverer:
     def __init__(
-        self, repo: AllyRepository, mailer: Mailer, clock: Callable[[], float] = time.time
+        self,
+        repo: AllyRepository,
+        mailer: Mailer,
+        clock: Callable[[], float] = time.time,
+        caller: Caller | None = None,
     ) -> None:
         self._repo = repo
         self._mailer = mailer
         self._clock = clock
+        self._caller = caller
 
     def run(self, limit: int = 200) -> dict[str, int]:
         now = self._clock()
@@ -776,9 +994,64 @@ class Deliverer:
             if not chosen:
                 totals["skipped"] += len(entries)
                 continue
+            if kind == "call":
+                totals[
+                    "sent" if self._call(sub, ally, chosen[0], entries[0], now) else "skipped"
+                ] += 1
+                continue
             self._send(sub, ally, kind, chosen, now)
             totals["sent"] += 1
         return totals
+
+    def _call(
+        self,
+        sub: str,
+        ally: dict[str, Any],
+        item: dict[str, Any],
+        entry: dict[str, Any],
+        now: float,
+    ) -> bool:
+        """One heads-up call, if everything still allows it. Logged either way."""
+
+        def log(status: str, call_id: str = "") -> None:
+            sent_id = secrets.token_hex(8)
+            record: dict[str, Any] = {
+                "id": sent_id,
+                "sent_at": iso(now),
+                "channel": "call",
+                "ally_name": ally["name"],
+                "status": status,
+                "kind": "heads_up",
+                "item_ids": [item["id"]],
+                "ttl_epoch": int(now) + 90 * 86400,
+            }
+            if call_id:
+                record["call_id"] = call_id
+            self._repo.put(sub, f"SENT#{iso(now)}#{sent_id}", record)
+
+        # Checked again at calling time: turned off, or quiet hours began.
+        if not wants_call(ally) or in_quiet_hours(ally, now) or self._caller is None:
+            return False
+        this_month = month(now)
+        if not self._repo.claim_call(sub, this_month, MONTHLY_CALLS, int(now) + 120 * 86400):
+            log("monthly_limit_reached")
+            return False
+        message = CallMessage(
+            ally_name=str(ally["name"]),
+            holder=self._repo.display_name(sub) or "someone you know",
+            summary=str(item["summary"]),
+            new_element=new_element_line(item.get("new_signals") or []),
+        )
+        key = hashlib.sha256(str(entry["sk"]).encode()).hexdigest()[:32]
+        try:
+            call_id = self._caller.call(str(ally["phone"]), message, idempotency_key=key)
+        except Exception as exc:
+            LOGGER.warning("Heads-up call failed: %s", type(exc).__name__)
+            self._repo.release_call(sub, this_month)
+            log("failed")
+            return False
+        log("placed", call_id)
+        return True
 
     def _send(
         self, sub: str, ally: dict[str, Any], kind: str, items: list[dict[str, Any]], now: float
@@ -789,26 +1062,37 @@ class Deliverer:
         # A fresh link each time; the previous one keeps working until it expires.
         self._repo.put_link(token_digest, sub, ally["id"], int(now) + LINK_SECONDS)
         link = ally_link(token)
+        bullets: list[str] = []
         if kind == "digest":
-            lines = [f"From {holder}'s recordings today:"] + [f"• {i['summary']}" for i in items]
+            intro = [f"From {holder}'s recordings today:"]
+            bullets = [str(i["summary"]) for i in items]
         elif kind == "call_today":
-            lines = [
+            intro = [
                 f"{holder} mentioned something that may be worth a call today:",
                 items[0]["summary"],
             ]
         else:
-            lines = [f"About {holder}: {items[0]['summary']}"]
+            intro = [f"About {holder}: {items[0]['summary']}"]
         if kind != "digest" and items[0].get("new_signals"):
-            lines.append(new_element_line(items[0]["new_signals"]))
-        lines.append(
+            intro.append(new_element_line(items[0]["new_signals"]))
+        closing = (
             "Hearally reports what was said, and it can be wrong. "
             "If it was nothing, you can say so with one tap."
         )
+        lines = [*intro, *(f"• {b}" for b in bullets), closing]
         self._mailer.send(
             to=ally["email"],
             subject=SUBJECTS[kind],
             text="\n\n".join(lines) + f"\n\nOpen, or say it was nothing: {link}\n\n{NOT_EMERGENCY}",
-            html_body=_html(lines, link, "Open, or say it was nothing"),
+            html_body=_html(
+                intro,
+                link,
+                "Open, or say it was nothing",
+                title=TITLES[kind],
+                greet=str(ally["name"]),
+                bullets=bullets,
+                after=[closing],
+            ),
             purpose=f"ally-{kind}",
         )
         sent_id = secrets.token_hex(8)

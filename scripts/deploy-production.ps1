@@ -87,8 +87,16 @@ Write-Step "Uploading the site to s3://$bucket"
 $public = Join-Path $webDir 'public'
 aws s3 sync $public "s3://$bucket/" --delete --region us-east-1 --exclude '*' --include '*.html' --cache-control 'public, max-age=300'
 if ($LASTEXITCODE -ne 0) { throw 'HTML upload failed' }
-aws s3 sync $public "s3://$bucket/" --delete --region us-east-1 --exclude '*.html' --exclude 'collector/*' --cache-control 'public, max-age=3600'
+aws s3 sync $public "s3://$bucket/" --delete --region us-east-1 --exclude '*.html' --exclude 'collector/*' --exclude 'media/*.mp4' --cache-control 'public, max-age=3600'
 if ($LASTEXITCODE -ne 0) { throw 'Site upload failed' }
+# Videos (web/README.md, "Videos") are kept out of git, so they exist only on
+# the machine that made them. Uploaded without --delete: a deploy from anywhere
+# else must never remove published videos.
+$media = Join-Path $public 'media'
+if (Get-ChildItem -Path $media -Filter '*.mp4' -ErrorAction SilentlyContinue) {
+    aws s3 sync $media "s3://$bucket/media/" --region us-east-1 --exclude '*' --include '*.mp4' --content-type 'video/mp4' --cache-control 'public, max-age=86400'
+    if ($LASTEXITCODE -ne 0) { throw 'Video upload failed' }
+}
 # The collector download: saved as a file rather than shown as text, and
 # short-lived like HTML, since its URL does not change between releases.
 aws s3 cp (Join-Path $public 'collector/hearally-collector.mjs') "s3://$bucket/collector/hearally-collector.mjs" --region us-east-1 --content-type 'text/javascript; charset=utf-8' --content-disposition 'attachment; filename="hearally-collector.mjs"' --cache-control 'public, max-age=300'
