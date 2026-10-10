@@ -171,6 +171,16 @@ def _plain(value: Any) -> Any:
     return value
 
 
+def _after(value: Any, since: float) -> bool:
+    """Whether an ISO timestamp is later than ``since`` (epoch seconds)."""
+    from datetime import datetime
+
+    try:
+        return datetime.fromisoformat(str(value).replace("Z", "+00:00")).timestamp() > since
+    except ValueError:
+        return False
+
+
 def _records(reader: AccountReader, sub: str, prefix: str) -> list[dict[str, Any]]:
     records = reader.query(sub, prefix, LIST_LIMIT)
     if prefix == "ALLY#":
@@ -195,7 +205,27 @@ def section(
         allies = _records(reader, sub, "ALLY#")
         computers = _records(reader, sub, "COMPUTER#")
         recordings = _records(reader, sub, "RECORDING#")
+        held_back = _records(reader, sub, "HELDBACK#")
+        sent = _records(reader, sub, "SENT#")
+        week = time.time() - 7 * 86400
+        budget = reader.get(sub, f"CALLBUDGET#{calls_month(time.time())}") or {}
         return {
+            # The last 7 days at a glance.
+            "week": {
+                "summaries": sum(1 for i in summaries if _after(i.get("spoken_at"), week)),
+                "heads_ups": sum(
+                    1
+                    for i in summaries
+                    if i.get("grade") == "priority" and _after(i.get("spoken_at"), week)
+                ),
+                "held_back": sum(1 for m in held_back if _after(m.get("spoken_at"), week)),
+                "messages": sum(
+                    1
+                    for m in sent
+                    if m.get("status") in {"sent", "placed"} and _after(m.get("sent_at"), week)
+                ),
+            },
+            "calls": {"used": int(_plain(budget.get("used", 0))), "limit": MONTHLY_CALLS},
             "counts": {
                 "summaries": len(summaries),
                 "alerts": len(alerts),
@@ -213,9 +243,23 @@ def section(
     if name == "activity":
         return {"alerts": _records(reader, sub, "ALERT#"), "sent": _records(reader, sub, "SENT#")}
     if name == "summaries":
+        # Which allies each summary reached, and how: from the SENT# log,
+        # by the item ids it carries (never shown to the browser as such).
+        sent_to: dict[str, list[dict[str, str]]] = {}
+        for record in reader.query(sub, "SENT#", LIST_LIMIT):
+            if record.get("status") not in {"sent", "placed"}:
+                continue
+            for item_id in record.get("item_ids") or []:
+                sent_to.setdefault(str(item_id), []).append(
+                    {
+                        "ally_name": str(record.get("ally_name", "")),
+                        "channel": str(record.get("channel", "email")),
+                    }
+                )
         return {
             "summaries": _records(reader, sub, "ITEM#"),
             "held_back": _records(reader, sub, "HELDBACK#"),
+            "sent_to": sent_to,
         }
     if name == "people":
         profile = reader.get(sub, "PROFILE") or {}

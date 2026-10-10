@@ -114,7 +114,7 @@ function nav(current) {
   return `<nav id="dashboard-nav" aria-label="Dashboard" class="hidden border-b border-line bg-sand px-3 pb-4 md:block md:w-60 md:shrink-0 md:border-b-0 md:border-r md:pb-8 md:pt-6">
         <p id="nav-signed-in-as" class="hidden break-all px-3 pt-4 font-sans text-sm text-muted md:hidden"></p>
         ${groups}
-        <p class="mt-8 px-3 font-sans text-sm text-muted"><a href="/setup/" class="inline-block py-2 underline underline-offset-4">Guide</a> · <a href="/terms/" class="inline-block py-2 underline underline-offset-4">Terms</a> · <a href="/privacy/" class="inline-block py-2 underline underline-offset-4">Privacy</a> · <a href="mailto:info@email.famplified.com" class="inline-block py-2 underline underline-offset-4">Contact</a></p>
+        <p class="mt-8 flex flex-wrap gap-x-3 px-3 font-sans text-sm text-muted"><a href="/setup/" class="inline-block py-2 underline underline-offset-4">Guide</a><a href="/terms/" class="inline-block py-2 underline underline-offset-4">Terms</a><a href="/privacy/" class="inline-block py-2 underline underline-offset-4">Privacy</a><a href="mailto:info@email.famplified.com" class="inline-block py-2 underline underline-offset-4">Contact</a></p>
       </nav>`;
 }
 

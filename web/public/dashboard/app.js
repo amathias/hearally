@@ -362,7 +362,7 @@
     return b ? h("span", { class: "rounded px-2 py-0.5 font-sans text-[11px] font-bold uppercase tracking-[0.12em] " + b[1], text: b[0] }) : null;
   }
 
-  function summaryRow(item) {
+  function summaryRow(item, sentTo) {
     var learned = item.learned
       ? "Kept for the daily list: an ally said something like this was nothing."
       : item.new_signals && item.new_signals.length
@@ -376,7 +376,80 @@
       h("p", { class: "mt-1.5", text: item.summary || "" }),
       h("p", { class: "mt-1 font-sans text-sm text-muted", text: when(item.spoken_at) }),
       learned ? h("p", { class: "mt-1 font-sans text-sm text-amber-text", text: learned }) : null,
+      sentTo && sentTo[item.id] && sentTo[item.id].length
+        ? h("p", { class: "mt-1 font-sans text-sm text-muted" }, [
+            "Reached ",
+          ].concat(
+            sentTo[item.id].map(function (s, i) {
+              return h("span", {}, [
+                i ? ", " : "",
+                h("span", { class: "font-semibold text-amber-text", text: s.ally_name }),
+                s.channel === "call" ? " by phone call" : " by email",
+              ]);
+            }),
+          ))
+        : null,
     ]);
+  }
+
+  // Summaries, newest first: a filter by grade, then grouped by day.
+  var FILTERS = [
+    ["all", "All"],
+    ["priority", "Heads-ups"],
+    ["call_today", "Worth a call today"],
+    ["daily", "Daily list"],
+  ];
+
+  function summariesList(items, sentTo) {
+    var current = "all";
+    var holder = h("div", {});
+    var bar = h("div", { class: "flex flex-wrap gap-2", role: "group", "aria-label": "Show" });
+    function draw() {
+      bar.replaceChildren.apply(
+        bar,
+        FILTERS.map(function (f) {
+          var n = f[0] === "all" ? items.length : items.filter(function (i) { return i.grade === f[0]; }).length;
+          var on = f[0] === current;
+          var chip = h("button", {
+            type: "button",
+            "aria-pressed": on ? "true" : "false",
+            class: "rounded-full border px-3 py-1.5 font-sans text-sm font-semibold " + (on ? "border-teal bg-teal text-paper" : "border-line bg-paper text-ink hover:bg-sand"),
+            text: f[1] + " (" + n + ")",
+          });
+          chip.addEventListener("click", function () {
+            current = f[0];
+            draw();
+          });
+          return chip;
+        }),
+      );
+      var shown = items.filter(function (i) { return current === "all" || i.grade === current; });
+      if (!shown.length) {
+        holder.replaceChildren(para("Nothing of this kind yet.", "mt-4 text-muted"));
+        return;
+      }
+      var days = [];
+      shown.forEach(function (item) {
+        var date = new Date(item.spoken_at);
+        var key = isNaN(date) ? "Undated" : date.toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" });
+        var last = days[days.length - 1];
+        if (!last || last.key !== key) days.push({ key: key, items: [item] });
+        else last.items.push(item);
+      });
+      holder.replaceChildren.apply(
+        holder,
+        days.map(function (day) {
+          return h("section", { class: "mt-6" }, [
+            h("h3", { class: "font-sans text-sm font-bold text-muted", text: day.key }),
+            list(day.items, function (item) {
+              return summaryRow(item, sentTo);
+            }),
+          ]);
+        }),
+      );
+    }
+    draw();
+    return h("div", {}, [bar, holder]);
   }
 
   // Held back from every ally, shown to the account holder alone, who can
@@ -406,6 +479,29 @@
         }),
       ),
       note,
+    ]);
+  }
+
+  // Today: the last 7 days in four numbers, and this month's calls.
+  function glance(d) {
+    var w = d.week || {};
+    function tile(n, label, href) {
+      return h("a", { href: href, class: "block rounded-xl border border-line bg-paper px-4 py-3 no-underline hover:border-teal" }, [
+        h("p", { class: "font-display text-2xl font-semibold text-ink", text: String(n || 0) }),
+        h("p", { class: "font-sans text-sm text-muted", text: label }),
+      ]);
+    }
+    return h("section", { class: "mt-8" }, [
+      h("p", { class: "font-sans text-[11px] font-bold uppercase tracking-[0.12em] text-muted", text: "The last 7 days" }),
+      h("div", { class: "mt-2 grid grid-cols-2 gap-3 sm:grid-cols-4" }, [
+        tile(w.summaries, w.summaries === 1 ? "summary" : "summaries", "/dashboard/summaries/"),
+        tile(w.heads_ups, w.heads_ups === 1 ? "heads-up" : "heads-ups", "/dashboard/activity/"),
+        tile(w.held_back, "held back", "/dashboard/summaries/#held-back"),
+        tile(w.messages, w.messages === 1 ? "message to allies" : "messages to allies", "/dashboard/activity/"),
+      ]),
+      d.calls
+        ? para("Phone calls this month: " + d.calls.used + " of " + d.calls.limit + ".", "mt-2 font-sans text-sm text-muted")
+        : null,
     ]);
   }
 
@@ -882,7 +978,7 @@
     if (!d.recordings.length) {
       return empty(
         "No recordings listed yet.",
-        "Each recording appears here as it arrives. Recordings received before 30 September 2026 are not listed.",
+        "Each recording appears here as it arrives. Recordings that arrived before 30 September 2026 are counted under How recordings reach Hearally, but not listed here.",
       );
     }
     return table(
@@ -946,6 +1042,12 @@
     return box;
   }
 
+  // "· nothing for 13 days", when a computer has gone quiet for more than three.
+  function quiet(at) {
+    var days = Math.floor((Date.now() - new Date(at).getTime()) / 86400000);
+    return days > 3 ? " · nothing for " + days + " days" : "";
+  }
+
   // One table of every way in: Plaud sign-in and each computer.
   function connectionsTable(d, plaud) {
     var plaudVia = d.recordings.filter(function (r) {
@@ -972,7 +1074,7 @@
       ),
       cell(
         h("div", { class: "flex flex-wrap gap-2" }, [
-          button("Test", function () {
+          button("Check connection", function () {
             plaudTest(testOut);
           }),
           button("Disconnect", plaudDisconnect),
@@ -989,7 +1091,7 @@
             h("p", { class: "mt-0.5 font-sans text-sm text-muted", text: "Hearally collector · connected " + when(c.paired_at) }),
           ]),
           cell(statusDot(active, active ? "Connected" : "Disconnected")),
-          cell(c.last_seen_at ? when(c.last_seen_at) : "Nothing yet", "text-muted"),
+          cell(c.last_seen_at ? when(c.last_seen_at) + quiet(c.last_seen_at) : "Nothing yet", "text-muted"),
           cell(
             active
               ? button("Disconnect", function () {
@@ -1007,7 +1109,7 @@
   }
 
   function integrationsPage(d) {
-    var box = h("div", {}, [para("Loading your connections…", "text-muted")]);
+    var box = h("div", {}, [para("Loading your integrations…", "text-muted")]);
     send("POST", "/v1/me/plaud/status")
       .then(function (r) {
         if (r.signedOut) return signedOut();
@@ -1088,7 +1190,7 @@
       "aria-label": "How your allies know you",
     });
     var note = h("div", { "aria-live": "polite" });
-    return h("section", { class: "mt-4 rounded-xl border border-line bg-paper px-6 py-5" }, [
+    var form = h("section", { class: "mt-4 rounded-xl border border-line bg-paper px-6 py-5" }, [
       h("h3", { class: "text-lg font-semibold", text: "How your allies know you" }),
       para("Used in every message, so they know who it is about.", "mt-1 text-muted"),
       input,
@@ -1103,6 +1205,17 @@
       ]),
       note,
     ]);
+    if (!d.display_name) return form;
+    // Once set, one line: the form opens only to change it.
+    var line = h("div", { class: "mt-4 flex flex-wrap items-center gap-3" }, [
+      h("p", {}, ["Your allies know you as ", h("span", { class: "font-semibold", text: d.display_name }), "."]),
+    ]);
+    var change = button("Change", function () {
+      line.replaceWith(form);
+      input.focus();
+    });
+    line.appendChild(change);
+    return line;
   }
 
   function addCard(d) {
@@ -1201,6 +1314,21 @@
     );
   }
 
+  // What an ally's heads-up email looks like (backend allies._html), with
+  // sample text: Dana is an example ally.
+  function sampleEmail(holder) {
+    return h("div", { class: "mt-4 max-w-[30rem] overflow-hidden rounded-xl border border-line bg-paper font-sans" }, [
+      h("p", { class: "bg-ink px-5 py-3 text-xl font-bold text-amber", text: "hearally" }),
+      h("div", { class: "px-5 py-5 text-ink" }, [
+        h("p", { class: "font-display text-xl font-semibold", text: "A call worth knowing about" }),
+        h("p", { class: "mt-3" }, ["Hi ", h("span", { class: "font-bold text-amber-text", text: "Dana" }), ","]),
+        h("p", { class: "mt-3 leading-relaxed", text: "About " + holder + ": a caller said they were from the bank's fraud team, asked for a card number, and said not to mention it to family." }),
+        h("p", { class: "mt-4" }, [h("span", { class: "inline-block rounded-lg bg-teal px-4 py-2 font-semibold text-paper", text: "Open, or say it was nothing" })]),
+      ]),
+      h("p", { class: "border-t border-line px-5 py-3 text-[13px] text-muted", text: "Hearally is not an emergency service. In an emergency, call 911." }),
+    ]);
+  }
+
   function peoplePage(d) {
     return h("div", {}, [
       nameCard(d),
@@ -1208,25 +1336,24 @@
       d.allies.length
         ? alliesTable(d)
         : empty("You have not added any allies yet.", "Add someone below. Each person confirms before receiving anything."),
-      d.calls
-        ? para(
-            "Phone calls: an ally who hears heads-ups can also choose to be phoned for one, from their own page, after confirming their number by text. During the public preview, your account has " +
-              d.calls.limit +
-              " calls a month; " +
-              d.calls.used +
-              " used this month.",
-            "mt-4 max-w-[44rem] font-sans text-sm text-muted",
-          )
-        : null,
-      para("A heads-up goes to every confirmed ally who hears them, at most one a day. Something worth a call today goes to your first ally, held until morning during their quiet hours. Everything else arrives in one daily list. Each ally sets their own quiet hours and daily-list time on their page (21:00 to 08:00, and 18:00, unless they change them).", "mt-4 max-w-[44rem] font-sans text-sm text-muted"),
+      h("details", { class: "mt-4 rounded-xl border border-line bg-paper px-5 py-4" }, [
+        h("summary", { class: "cursor-pointer font-sans font-semibold text-ink", text: "How messages reach your allies" }),
+        para("A heads-up goes to every confirmed ally who hears them, at most one a day. Something worth a call today goes to your first ally, held until morning during their quiet hours. Everything else arrives in one daily list. Each ally sets their own quiet hours and daily-list time on their page (21:00 to 08:00, and 18:00, unless they change them).", "mt-3 max-w-[44rem] text-muted"),
+        d.calls
+          ? para(
+              "Phone calls: an ally who hears heads-ups can also choose to be phoned for one, from their own page, after confirming their number by text. During the public preview, your account has " +
+                d.calls.limit +
+                " calls a month; " +
+                d.calls.used +
+                " used this month.",
+              "mt-3 max-w-[44rem] text-muted",
+            )
+          : null,
+      ].filter(Boolean)),
       d.allies.length < 5 ? addCard(d) : null,
       heading("What an ally receives"),
       para("An example. Every message says Hearally is not an emergency service, and lets them say it was nothing.", "mt-1 max-w-[40rem] text-muted"),
-      h("div", { class: "mt-4 max-w-[30rem] rounded-2xl bg-ink px-6 py-6 text-sand" }, [
-        h("p", { class: "font-sans text-[11px] font-bold uppercase tracking-[0.12em] text-muted-dark", text: "Email" }),
-        h("p", { class: "mt-3 leading-relaxed", text: "About " + (d.display_name || "you") + ": a call this afternoon sounded like a common scam script. The caller asked for an account number and said not to mention it to family." }),
-        h("p", { class: "mt-4 border-t border-line-dark pt-3 text-[13px] text-muted-dark", text: "Open, or say it was nothing · Not an emergency service" }),
-      ]),
+      sampleEmail(d.display_name || "you"),
     ].filter(Boolean));
   }
 
@@ -1406,7 +1533,9 @@
           var latest = [
             heading("Latest summaries"),
             d.latest_summaries.length
-              ? list(d.latest_summaries, summaryRow)
+              ? list(d.latest_summaries, function (item) {
+                  return summaryRow(item);
+                })
               : empty(
                   "No summaries yet.",
                   "Recordings are transcribed about every half hour. Anything worth passing on appears here, usually within an hour of recording.",
@@ -1421,15 +1550,23 @@
               ]
             : [heading("Getting set up"), checklist];
 
+          var works = setUp
+            ? [
+                h("details", { class: "mt-4 rounded-xl border border-line bg-paper px-5 py-4" }, [
+                  h("summary", { class: "cursor-pointer font-sans font-semibold text-ink", text: "What works in the preview" }),
+                  capabilities(d.capabilities),
+                ]),
+              ]
+            : [heading("What works in the preview"), capabilities(d.capabilities)];
+
           box.replaceChildren.apply(box, [
             d.acknowledged ? null : agreementPanel(d.acknowledgement_version, render),
             status,
+            setUp ? glance(d) : null,
           ]
             .concat(setUp ? latest.concat(setup) : setup.concat(latest))
-            .concat([
-            heading("What works in the preview"),
-            capabilities(d.capabilities),
-          ]).filter(Boolean));
+            .concat(works)
+            .filter(Boolean));
         })
         .catch(function () {
           box.replaceChildren(para("Today could not be loaded. Please reload the page.", "text-flag"));
@@ -1479,12 +1616,12 @@
     summaries: function (d) {
       return [
         d.summaries.length
-          ? list(d.summaries, summaryRow)
+          ? summariesList(d.summaries, d.sent_to || {})
           : empty(
               "No summaries yet.",
               "A summary is a sentence or two about something worth passing on, such as a new appointment. They appear here once a recording is transcribed, usually within an hour.",
             ),
-        heading("Held back"),
+        h("h2", { id: "held-back", class: "mt-12 mb-1 text-[1.4rem] font-semibold", text: "Held back" }),
         d.held_back.length
           ? heldBackList(d.held_back)
           : empty(

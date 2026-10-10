@@ -132,6 +132,50 @@ class DashboardContentTests(unittest.TestCase):
         [ally] = section("people", SUB, {}, reader)["allies"]
         self.assertEqual(ally, {"id": "a1", "name": "Dana"})
 
+    def test_today_counts_the_last_seven_days(self) -> None:
+        from datetime import UTC, datetime, timedelta
+
+        now = datetime.now(UTC)
+        recent = (now - timedelta(days=1)).isoformat()
+        old = (now - timedelta(days=30)).isoformat()
+        reader = FakeReader(
+            {
+                (SUB, "ITEM#"): [
+                    {"id": "1", "grade": "priority", "spoken_at": recent},
+                    {"id": "2", "grade": "daily", "spoken_at": recent},
+                    {"id": "3", "grade": "priority", "spoken_at": old},
+                ],
+                (SUB, "HELDBACK#"): [{"id": "h", "spoken_at": recent}],
+                (SUB, "SENT#"): [
+                    {"id": "s1", "status": "sent", "sent_at": recent},
+                    {"id": "s2", "status": "monthly_limit_reached", "sent_at": recent},
+                ],
+            }
+        )
+        week = section("overview", SUB, {}, reader)["week"]
+        self.assertEqual(week, {"summaries": 2, "heads_ups": 1, "held_back": 1, "messages": 1})
+
+    def test_summaries_say_which_allies_each_reached(self) -> None:
+        reader = FakeReader(
+            {
+                (SUB, "SENT#"): [
+                    {"ally_name": "Dana", "channel": "email", "status": "sent", "item_ids": ["a"]},
+                    {"ally_name": "Dana", "channel": "call", "status": "placed", "item_ids": ["a"]},
+                    {"ally_name": "Sam", "channel": "call", "status": "failed", "item_ids": ["a"]},
+                ]
+            }
+        )
+        sent_to = section("summaries", SUB, {}, reader)["sent_to"]
+        self.assertEqual(
+            sent_to,
+            {
+                "a": [
+                    {"ally_name": "Dana", "channel": "email"},
+                    {"ally_name": "Dana", "channel": "call"},
+                ]
+            },
+        )
+
     def test_people_shows_this_months_calls_of_the_limit(self) -> None:
         import time
 

@@ -186,7 +186,10 @@ account holder's questions or replies as evidence of what someone else asked.
 
 Categories:
 - scam_pressure: a caller or visitor pressing for money, account details, secrecy or haste.
-- appointment: a new, moved or cancelled appointment.
+- appointment: a new, moved or cancelled appointment with a doctor, dentist, clinic, \
+pharmacy, hospital, care service, government office, bank or lawyer, or a home visit \
+such as a repair or a delivery. Not social plans: a restaurant reservation, a dinner, a \
+party, a trip or meeting friends is other.
 - help_request: the account holder asking someone they know for help, or saying they need \
 it. Not their replies to a caller, even worried ones like "what should I do?".
 - appointment_note: something said during an appointment, such as advice from a doctor.
