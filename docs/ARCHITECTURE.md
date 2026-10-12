@@ -33,10 +33,11 @@ NVIDIA's open **Parakeet TDT 0.6B v3** runs as a GPU job on **Nebius AI Cloud**,
 
 NVIDIA's open **Nemotron**, on **Nebius Token Factory** (hosted, used only with Zero Data Retention enabled), describes what was said. **Code decides** what happens.
 
+- **Built around what the wearer says.** Often only the account holder's own voice is recorded, and Hearally does not record or advertise recording the other side of a call. The category, the pressure signs and the summary are judged from the wearer's words ("you want my *whole* card number?", "gift cards?"), reported as their side ("they questioned being asked for their card number"), never inventing what anyone else said. In code: the wearer's own closing lines in a pressuring call ("I'll call my bank myself") are folded into that one item, and a call about one appointment is one item.
 - **One conversation at a time.** A recording is cut wherever nobody spoke for 60 seconds, and each conversation is judged separately, so a day's recording never becomes one "call".
 - **Numbers are masked** before anything is sent to the model.
 - **Grades.** A *priority heads-up* is a call that sounded like a common scam script, with concrete pressure signals. *Worth a call today* covers things like a new appointment or a request for help. Everything else is the *daily list*.
-- **Confidence gate.** An item can only become a heads-up if its plain words (no punctuation, no sentence-start capitals, at least 8 words) have a median confidence of 0.80 or more. Unclear speech can inform the daily list but never cause an immediate message.
+- **Confidence gate.** An item can only become a heads-up if the plain words of its conversation (no punctuation, no sentence-start capitals, at least 8 words) have a median confidence of 0.65 or more (lowered from 0.80 after clear conversational speech measured 0.71). The whole conversation is measured, not only the lines the model cites, which vary between runs. Each item stores the reasons for its grade, and the collector logs the numbers behind it. Below the bar, an appointment or a request for help stays on the daily list. Pressure for money or details with concrete signals is always passed on as a heads-up, saying the recording was unclear: the score measures how spread out the model's guesses were, not whether the words are right.
 - **The once-a-day budget** for heads-ups is a conditional write in the database, not a prompt instruction.
 
 ## 5. Known scam scripts
@@ -44,7 +45,7 @@ NVIDIA's open **Nemotron**, on **Nebius Token Factory** (hosted, used only with 
 A curated library of common phone and doorstep scams (grandparent, government impersonation, jury duty, Medicare and others), each card sourced from the FTC, AARP, the IRS, the SSA, US Courts, IC3 or Medicare.gov (`backend/src/hearally/scam_cards.json`).
 
 - Each conversation is matched against the library with **Qwen3 embeddings** on Token Factory; close cards are shown to Nemotron as reference, never as evidence.
-- A heads-up **names** a script only when the model's judgement, the model's match and the retrieval score all agree. A named script never changes the grade.
+- A heads-up **names** a script only when the model's judgement, the model's match and the retrieval score all agree. The email then says what the call sounded like and links the publisher's own page. A named script never changes the grade.
 - **Kept current weekly with Tavily**: fixed searches of trusted publishers only. Code accepts a new card only if it describes one phone or doorstep scam and is not a near-duplicate of an existing card.
 - Evaluation: `docs/eval/scam-retrieval.md`.
 

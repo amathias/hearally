@@ -89,11 +89,13 @@ class NebiusJobs:
     async def _launch(self, manifest_url: str) -> str:
         from nebius.api.nebius.ai.v1 import (
             CreateJobRequest,
+            FollowsSpotPriceSpec,
             GetJobRequest,
             JobServiceClient,
             JobSpec,
             JobSpec__DiskSpec,
             JobSpec__EnvironmentVariable,
+            PricingModelSpec,
         )
         from nebius.api.nebius.common.v1 import ResourceMetadata
         from nebius.api.nebius.compute.v1 import DiskSpec
@@ -109,6 +111,9 @@ class NebiusJobs:
                     subnet_id=SUBNET,
                     # Preemptible, retried if reclaimed: the job is safe to rerun.
                     preemptible=True,
+                    # Nebius requires a pricing model with preemptible jobs
+                    # (since 2026-10): the current spot price, as before.
+                    pricing_model=PricingModelSpec(follows_spot_price=FollowsSpotPriceSpec()),
                     restart_attempts=2,
                     timeout=JOB_TIMEOUT,
                     disk=JobSpec__DiskSpec(

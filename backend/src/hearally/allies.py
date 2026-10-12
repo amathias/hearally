@@ -516,6 +516,7 @@ def _html(
     greet: str = "",
     bullets: Sequence[str] = (),
     after: Sequence[str] = (),
+    source: tuple[str, str] | None = None,
 ) -> str:
     """The email's HTML: a table layout, inline styles and no images, so it
     looks the same in every mail app, with images blocked or not."""
@@ -544,6 +545,11 @@ def _html(
             + "".join(f'<li style="margin:0 0 8px">{esc(b)}</li>' for b in bullets)
             + "</ul>"
         )
+    if source:
+        parts.append(
+            f'<p style="margin:0 0 14px">Read about it: <a href="{esc(source[1], quote=True)}" '
+            f'style="color:{_TEAL}">{esc(source[0])}</a></p>'
+        )
     parts += [f'<p style="margin:0 0 14px">{esc(p)}</p>' for p in after]
     parts.append(
         f'<p style="margin:22px 0 4px"><a href="{esc(link, quote=True)}" style="display:'
@@ -564,6 +570,18 @@ def _html(
         '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" '
         f'style="max-width:560px;margin:0 auto">{head}{card}{foot}</table></div>'
     )
+
+
+def _source(value: Any) -> tuple[str, str] | None:
+    """The page a named scam is described on, as (label, link): only an https
+    link, and only from what the worker stored with the item."""
+    if not isinstance(value, Mapping):
+        return None
+    url, publisher = str(value.get("url", "")), str(value.get("publisher", ""))
+    if not url.startswith("https://") or not publisher:
+        return None
+    title = str(value.get("title", "")).strip()
+    return (f"{title} ({publisher})" if title else publisher, url)
 
 
 def ally_link(token: str) -> str:
@@ -958,6 +976,11 @@ SUBJECTS = {
 }
 
 
+# Added to a heads-up whose recording the transcription was unsure of
+# (judgement.decide's "unclear_recording").
+UNCLEAR_LINE = "The recording was unclear in places, so some of the words may be wrong."
+
+
 class Deliverer:
     def __init__(
         self,
@@ -1063,6 +1086,7 @@ class Deliverer:
         self._repo.put_link(token_digest, sub, ally["id"], int(now) + LINK_SECONDS)
         link = ally_link(token)
         bullets: list[str] = []
+        source: tuple[str, str] | None = None
         if kind == "digest":
             intro = [f"From {holder}'s recordings today:"]
             bullets = [str(i["summary"]) for i in items]
@@ -1073,13 +1097,22 @@ class Deliverer:
             ]
         else:
             intro = [f"About {holder}: {items[0]['summary']}"]
+            # The known scam the call resembled, when the judgement named one
+            # (ARCHITECTURE.md section 5), with the publisher's own page.
+            if items[0].get("sounds_like"):
+                intro.append(str(items[0]["sounds_like"]))
+                source = _source(items[0].get("source"))
         if kind != "digest" and items[0].get("new_signals"):
             intro.append(new_element_line(items[0]["new_signals"]))
+        if kind != "digest" and "unclear_recording" in (items[0].get("reasons") or []):
+            intro.append(UNCLEAR_LINE)
         closing = (
             "Hearally reports what was said, and it can be wrong. "
             "If it was nothing, you can say so with one tap."
         )
         lines = [*intro, *(f"• {b}" for b in bullets), closing]
+        if source:
+            lines.insert(len(intro), f"Read about it: {source[0]}, {source[1]}")
         self._mailer.send(
             to=ally["email"],
             subject=SUBJECTS[kind],
@@ -1092,6 +1125,7 @@ class Deliverer:
                 greet=str(ally["name"]),
                 bullets=bullets,
                 after=[closing],
+                source=source,
             ),
             purpose=f"ally-{kind}",
         )

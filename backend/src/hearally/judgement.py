@@ -95,13 +95,19 @@ NEVER_HELD = frozenset({"scam_pressure", "help_request"})
 # quote and the evidence clip there.
 BLOCKS_SCAM_EVIDENCE = frozenset({"intimate", "bodily", "family_conflict"})
 
-# Account-holder lines that can be absorbed into a surrounding scam call: their
-# replies to the caller, not new things they said.
-_ABSORBABLE_INSIDE_CALL = frozenset({"help_request", "other"})
+# Lines that can be absorbed into a surrounding scam call: the account
+# holder's own side of it ("I'll call my bank myself", "I'll call my daughter"),
+# not new things they said. Appointments and the rest are always kept.
+_ABSORBABLE_INSIDE_CALL = frozenset({"help_request", "other", "task"})
 
-# Below this, a segment may still inform the day's list but can never cause a
-# text on its own: "I like to write code" once arrived as "I like to write cod".
-MIN_CONFIDENCE_TO_ESCALATE = 0.80
+# Below this, an appointment or a request for help stays on the day's list
+# instead of a message today ("I like to write code" once arrived as "I like
+# to write cod"). A heads-up for scam pressure is never held back by it: it
+# says the recording was unclear instead (decide).
+# Lowered from 0.80 on 2026-10-10: a scripted card-check call, spoken close
+# to the recorder and transcribed correctly, scored a median of 0.71.
+# Relaxed conversational speech scores lower than a read script (0.83).
+MIN_CONFIDENCE_TO_ESCALATE = 0.65
 # With word scores from Parakeet, an item is judged by the median of its plain
 # words, and needs at least this many: a few words are not enough to be sure.
 # Measured 2026-09-30 on a scripted scam call transcribed word for word:
@@ -175,17 +181,30 @@ SCHEMA: dict[str, Any] = response_schema()
 SYSTEM_PROMPT = """You read a transcript of things said near a person, called the account \
 holder, and list what their chosen allies might want to know.
 
+Often only the account holder's own voice is recorded: on a phone call, the other side is \
+usually not heard. Judge everything, the category, the scam signals and the summary, from \
+what the account holder says. When they repeat or question what they are being asked \
+("you want my whole card number?", "gift cards? that doesn't sound right", "Friday at two \
+thirty, yes that's fine"), treat that as what they were asked or told, and report it as their \
+side ("they questioned being asked for their card number"). Never invent what the other side \
+said beyond what the account holder's words show. Refer to the account holder as "they"; \
+never write "he/she".
+
 Rules:
 - Report only what was said, as a short paraphrase in reported speech. Never state that a scam \
 happened or that anyone is in danger; say what was asked or said.
 - Never copy a number that could identify an account, card, person or code into a summary. \
 Numbers in the transcript are already masked as [number]; keep them masked.
 - One item per distinct thing. A single phone call applying pressure is one item, not one per line.
-- segment_ids lists only the segments where the thing itself was said. Do not include the \
-account holder's questions or replies as evidence of what someone else asked.
+- segment_ids lists the segments the item rests on: what the other person said, when it was \
+recorded, and otherwise the account holder's own words that show it.
 
 Categories:
-- scam_pressure: a caller or visitor pressing for money, account details, secrecy or haste.
+- scam_pressure: a caller or visitor pressing for money, account details, secrecy or haste, \
+whether heard directly or shown by what the account holder says back. Set scam_signals from \
+the account holder's words too: questioning a request for a card number is \
+asks_for_account_details; repeating "gift cards" is gift_cards; "don't tell anyone" or "not \
+even my family" is secrecy; "today", "right now" or "within the hour" is urgency.
 - appointment: a new, moved or cancelled appointment with a doctor, dentist, clinic, \
 pharmacy, hospital, care service, government office, bank or lawyer, or a home visit \
 such as a repair or a delivery. Not social plans: a restaurant reservation, a dinner, a \
@@ -228,24 +247,57 @@ class Segment:
     end: float | None = None
 
 
-def _measured(segment_ids: Sequence[int], by_id: Mapping[int, Segment]) -> float:
-    """How sure the transcript is of what an item rests on.
+def _median(scores: Sequence[float]) -> float:
+    ordered = sorted(scores)
+    middle = len(ordered) // 2
+    if len(ordered) % 2:
+        return ordered[middle]
+    return (ordered[middle - 1] + ordered[middle]) / 2
 
-    With word scores, the median of the item's plain words, or 0.0 with fewer
-    than MIN_WORDS_TO_ESCALATE of them. Without, the weakest segment's score.
+
+def _measured(segment_ids: Sequence[int], by_id: Mapping[int, Segment]) -> tuple[int, float]:
+    """How sure the transcript is of what an item rests on, as (plain words,
+    score).
+
+    With word scores, the median of the plain words, or 0.0 with fewer than
+    MIN_WORDS_TO_ESCALATE of them. Without, the weakest segment's score.
     A segment the transcript does not have counts as 0.0.
     """
     found = [by_id.get(i) for i in segment_ids]
     if any(s is None for s in found):
-        return 0.0
+        return 0, 0.0
     present = [s for s in found if s is not None]
     if present and all(s.word_scores is not None for s in present):
-        words = sorted(w for s in present for w in (s.word_scores or ()))
+        words = [w for s in present for w in (s.word_scores or ())]
         if len(words) < MIN_WORDS_TO_ESCALATE:
-            return 0.0
-        middle = len(words) // 2
-        return words[middle] if len(words) % 2 else (words[middle - 1] + words[middle]) / 2
-    return min((s.confidence for s in present), default=0.0)
+            return len(words), 0.0
+        return len(words), _median(words)
+    return 0, min((s.confidence for s in present), default=0.0)
+
+
+@dataclass(frozen=True, slots=True)
+class Clarity:
+    """How clearly the transcript heard a decision's conversation, and the
+    lines the model cited, for comparison. Numbers only, safe to log."""
+
+    words: int
+    median: float
+    cited_words: int
+    cited_median: float
+
+
+def _clarity(candidate: Candidate, segments: Sequence[Segment]) -> Clarity:
+    """The gate measures the whole conversation's plain words, not only the
+    lines the model cited: which lines it cites varies from run to run, so
+    the same call could pass on one run and be held back on the next.
+    A transcript without word scores falls back to the cited lines."""
+    by_id = {segment.id: segment for segment in segments}
+    cited_words, cited_median = _measured(candidate.segment_ids, by_id)
+    scored = [s for s in segments if s.word_scores is not None]
+    if not scored:
+        return Clarity(cited_words, cited_median, cited_words, cited_median)
+    words, median = _measured([s.id for s in scored], by_id)
+    return Clarity(words, median, cited_words, cited_median)
 
 
 @dataclass(frozen=True, slots=True)
@@ -290,13 +342,19 @@ class Decision:
     clip_allowed: bool
     reasons: tuple[str, ...] = field(default=())
     pattern: Citation | None = None
+    clarity: Clarity | None = None
+
+
+_NO_ARTICLE = frozenset({"AARP", "Medicare.gov"})
 
 
 def sounds_like(citation: Citation) -> str:
     """The sentence a heads-up uses. It says what the call resembled and who
     describes that scam; it never says a scam happened (the claim rules in AGENTS.md
     section 3)."""
-    return f"This call sounds like the {citation.name} described by {citation.publisher}."
+    # "the Federal Trade Commission", but "AARP" and "Medicare.gov".
+    article = "" if citation.publisher in _NO_ARTICLE else "the "
+    return f"This call sounds like the {citation.name} described by {article}{citation.publisher}."
 
 
 def mask_numbers(text: str) -> str:
@@ -412,7 +470,7 @@ def _candidate(
     return Candidate(
         category=str(category),
         # Masked again in case the model reproduced a number it should not have.
-        summary=mask_numbers(summary.strip()),
+        summary=_sentence(mask_numbers(summary.strip())),
         speaker=str(speaker),
         segment_ids=ids,
         relevant=bool(item["relevant"]),
@@ -423,12 +481,50 @@ def _candidate(
     )
 
 
+def _full_stop(text: str) -> str:
+    """Joined fragments need their own full stops, or they run together."""
+    text = text.strip()
+    return text if not text or text[-1] in ".!?" else text + "."
+
+
+def _sentence(text: str) -> str:
+    """A summary starts with a capital: "they were asked…" reads as a fragment."""
+    return text[:1].upper() + text[1:]
+
+
 def _enum_set(value: Any, allowed: frozenset[str]) -> frozenset[str] | None:
     if not isinstance(value, list):
         return None
     if not all(isinstance(v, str) and v in allowed for v in value):
         return None
     return frozenset(value)
+
+
+def merge_appointments(candidates: Sequence[Candidate]) -> list[Candidate]:
+    """One appointment per conversation.
+
+    With only the account holder recorded, a call about one appointment is a
+    series of short replies ("Dr. Patel is out Thursday?", "Friday at two
+    thirty, yes"), and the model sometimes lists each as its own appointment.
+    A batch is one conversation, so they are one item: the fullest summary,
+    with every segment it rests on.
+    """
+    appointments = [c for c in candidates if c.category == "appointment"]
+    if len(appointments) < 2:
+        return list(candidates)
+    fullest = max(appointments, key=lambda c: len(c.summary))
+    merged = Candidate(
+        category="appointment",
+        summary=fullest.summary,
+        speaker=fullest.speaker,
+        segment_ids=tuple(sorted({i for c in appointments for i in c.segment_ids})),
+        relevant=any(c.relevant for c in appointments),
+        sensitivity=frozenset().union(*(c.sensitivity for c in appointments)),
+        is_media=all(c.is_media for c in appointments),
+        scam_signals=frozenset(),
+    )
+    rest = [c for c in candidates if c.category != "appointment"]
+    return [merged, *rest]
 
 
 def merge_call(candidates: Sequence[Candidate]) -> list[Candidate]:
@@ -452,11 +548,10 @@ def merge_call(candidates: Sequence[Candidate]) -> list[Candidate]:
 
     pressure.sort(key=lambda c: min(c.segment_ids))
     ids = sorted({i for c in pressure for i in c.segment_ids})
-    first, last = ids[0], ids[-1]
 
     merged = Candidate(
         category="scam_pressure",
-        summary=" ".join(c.summary for c in pressure),
+        summary=" ".join(_full_stop(c.summary) for c in pressure),
         speaker="other" if any(c.speaker == "other" for c in pressure) else pressure[0].speaker,
         segment_ids=tuple(ids),
         relevant=True,
@@ -467,12 +562,12 @@ def merge_call(candidates: Sequence[Candidate]) -> list[Candidate]:
         matched_pattern=next((c.matched_pattern for c in pressure if c.matched_pattern), None),
     )
 
+    # Often only the account holder is recorded, and speakers are not told
+    # apart, so their side of the call ("I'll call my bank myself", "I'll call my
+    # daughter") belongs to the one pressuring call: within this conversation,
+    # anything not attributed to someone else is part of it.
     def absorbed(c: Candidate) -> bool:
-        return (
-            c.speaker == "account_holder"
-            and c.category in _ABSORBABLE_INSIDE_CALL
-            and all(first <= i <= last for i in c.segment_ids)
-        )
+        return c.speaker != "other" and c.category in _ABSORBABLE_INSIDE_CALL
 
     rest = [c for c in candidates if c.category != "scam_pressure" and not absorbed(c)]
     return [merged, *rest]
@@ -495,11 +590,10 @@ def decide(
     by id, with their retrieval scores. They only ever add a citation to a
     heads-up; they never change whether one is sent or how fast.
     """
-    by_id = {segment.id: segment for segment in segments}
     decisions: list[Decision] = []
     budget_left = priority_available
 
-    for candidate in merge_call(candidates):
+    for candidate in merge_appointments(merge_call(candidates)):
         # Playback is not conversation. A film in the next room never becomes
         # an item, not even a held-back one.
         if candidate.is_media:
@@ -536,10 +630,18 @@ def decide(
         reasons: list[str] = []
         grade = _grade(candidate)
 
-        lowest = _measured(candidate.segment_ids, by_id)
-        if grade != DAILY and lowest < MIN_CONFIDENCE_TO_ESCALATE:
-            grade = DAILY
-            reasons.append("low_confidence")
+        clarity = _clarity(candidate, segments)
+        if grade != DAILY and clarity.median < MIN_CONFIDENCE_TO_ESCALATE:
+            if grade == PRIORITY:
+                # Pressure for money or details, with concrete signals, always
+                # reaches the allies: the score measures how spread out the
+                # model's guesses were, not whether the words are right, and
+                # it held back a clear card-check call (2026-10-11). The message
+                # says the recording was unclear instead.
+                reasons.append("unclear_recording")
+            else:
+                grade = DAILY
+                reasons.append("low_confidence")
 
         if grade == PRIORITY:
             if budget_left:
@@ -570,6 +672,7 @@ def decide(
                 # tells an ally the call was about intimate material. So when
                 # the dignity filter blocks the quote, it blocks the name too.
                 pattern=None if blocks_evidence else _citation(candidate, patterns or {}),
+                clarity=clarity,
             )
         )
     return decisions

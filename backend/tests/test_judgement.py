@@ -7,6 +7,7 @@ from typing import Any
 from hearally.judgement import (
     CALL_TODAY,
     DAILY,
+    MIN_CONFIDENCE_TO_ESCALATE,
     MODEL,
     PRIORITY,
     SCHEMA,
@@ -186,18 +187,21 @@ class DecideTests(unittest.TestCase):
             with self.subTest(category=category):
                 self.assertEqual(self.decide_one(category=category)[0].grade, grade)
 
-    def test_low_confidence_can_never_cause_a_text(self) -> None:
+    def test_unclear_scam_pressure_still_reaches_allies_marked_unclear(self) -> None:
+        """The score says how spread out the model's guesses were, not whether
+        the words are right; pressure with concrete signals is never held back."""
         [decision] = self.decide_one(
             category="scam_pressure", segment_ids=[5], scam_signals=["urgency"]
         )
-        self.assertEqual(decision.grade, DAILY)
-        self.assertIn("low_confidence", decision.reasons)
+        self.assertEqual(decision.grade, PRIORITY)
+        self.assertIn("unclear_recording", decision.reasons)
+        self.assertNotIn("low_confidence", decision.reasons)
 
     def test_one_low_confidence_segment_is_enough_to_demote(self) -> None:
         [decision] = self.decide_one(category="appointment", segment_ids=[4, 5])
         self.assertEqual(decision.grade, DAILY)
 
-    def with_words(self, *scores: tuple[float, ...]) -> list[Any]:
+    def with_words(self, *scores: tuple[float, ...], category: str = "scam_pressure") -> list[Any]:
         """Segments 1 and 3 with word scores, as a real transcript has them."""
         segments = [
             Segment(s.id, s.speaker, s.text, 0.2, scores[0] if s.id == 1 else scores[1])
@@ -205,8 +209,9 @@ class DecideTests(unittest.TestCase):
             else s
             for s in SEGMENTS
         ]
-        pressure = candidate(category="scam_pressure", segment_ids=[1, 3], scam_signals=["urgency"])
-        return decide([pressure], segments, priority_available=True)
+        signals = ["urgency"] if category == "scam_pressure" else []
+        item = candidate(category=category, segment_ids=[1, 3], scam_signals=signals)
+        return decide([item], segments, priority_available=True)
 
     def test_plain_words_decide_when_the_transcript_has_them(self) -> None:
         """Segment scores of 0.2, dragged down by punctuation, no longer block
@@ -214,15 +219,59 @@ class DecideTests(unittest.TestCase):
         [decision] = self.with_words((0.9, 0.85, 0.8, 0.95, 0.7), (0.88, 0.83, 0.9, 0.6))
         self.assertEqual(decision.grade, PRIORITY)
 
+    def test_relaxed_but_clear_speech_can_cause_a_text(self) -> None:
+        """Conversational speech heard right scores lower than a read script:
+        a median around 0.7 is clear enough."""
+        [decision] = self.with_words((0.84, 0.70, 0.75, 0.82, 0.66), (0.58, 0.87, 0.62, 0.71))
+        self.assertEqual(decision.grade, PRIORITY)
+
+    def scored(
+        self, cited: tuple[float, ...], rest: tuple[float, ...], category: str = "scam_pressure"
+    ) -> Any:
+        """Every segment with word scores: the cited lines (1 and 3) share
+        ``cited``, the rest of the conversation shares ``rest``."""
+        segments = [
+            Segment(s.id, s.speaker, s.text, 0.2, cited if s.id in (1, 3) else rest)
+            for s in SEGMENTS
+        ]
+        signals = ["urgency"] if category == "scam_pressure" else []
+        item = candidate(category=category, segment_ids=[1, 3], scam_signals=signals)
+        [decision] = decide([item], segments, priority_available=True)
+        return decision
+
+    def test_the_gate_measures_the_whole_conversation(self) -> None:
+        """Which lines the model cites varies between runs; a clearly heard
+        conversation is not held back because the cited lines scored lower."""
+        decision = self.scored((0.55, 0.6, 0.58, 0.62, 0.5), (0.9,) * 6)
+        self.assertEqual(decision.grade, PRIORITY)
+        self.assertNotIn("unclear_recording", decision.reasons)
+        self.assertEqual(decision.clarity.words, 28)
+        self.assertLess(decision.clarity.cited_median, MIN_CONFIDENCE_TO_ESCALATE)
+
+    def test_clear_cited_lines_in_an_unclear_conversation_cannot_cause_a_text(self) -> None:
+        decision = self.scored(
+            (0.95,) * 5, (0.3, 0.4, 0.35, 0.3, 0.45, 0.4), category="appointment"
+        )
+        self.assertEqual(decision.grade, DAILY)
+        self.assertIn("low_confidence", decision.reasons)
+        self.assertGreater(decision.clarity.cited_median, 0.9)
+
     def test_too_few_plain_words_cannot_cause_a_text(self) -> None:
-        [decision] = self.with_words((0.95, 0.95, 0.95), (0.95, 0.95))
+        [decision] = self.with_words((0.95, 0.95, 0.95), (0.95, 0.95), category="help_request")
         self.assertEqual(decision.grade, DAILY)
         self.assertIn("low_confidence", decision.reasons)
 
     def test_a_mostly_unclear_call_cannot_cause_a_text(self) -> None:
-        [decision] = self.with_words((0.9, 0.3, 0.4, 0.95, 0.5), (0.2, 0.9, 0.45, 0.6))
+        [decision] = self.with_words(
+            (0.9, 0.3, 0.4, 0.95, 0.5), (0.2, 0.9, 0.45, 0.6), category="appointment"
+        )
         self.assertEqual(decision.grade, DAILY)
         self.assertIn("low_confidence", decision.reasons)
+
+    def test_a_mostly_unclear_scam_call_is_sent_marked_unclear(self) -> None:
+        [decision] = self.with_words((0.9, 0.3, 0.4, 0.95, 0.5), (0.2, 0.9, 0.45, 0.6))
+        self.assertEqual(decision.grade, PRIORITY)
+        self.assertIn("unclear_recording", decision.reasons)
 
     def test_a_spent_budget_demotes_priority_to_call_today(self) -> None:
         [decision] = self.decide_one(
@@ -291,10 +340,54 @@ class MergeCallTests(unittest.TestCase):
         decisions = decide([*self.fragments(), aside], SEGMENTS, priority_available=True)
         self.assertIn("appointment", [d.candidate.category for d in decisions])
 
-    def test_a_request_for_help_after_the_call_is_kept(self) -> None:
-        later = candidate(category="help_request", speaker="account_holder", segment_ids=[4])
-        decisions = decide([*self.fragments(), later], SEGMENTS, priority_available=True)
-        self.assertIn("help_request", [d.candidate.category for d in decisions])
+    def test_their_own_closing_words_belong_to_the_call(self) -> None:
+        """Often only the wearer is recorded: "I'll hang up and call my daughter",
+        at the end of the call, is part of it. A later request for help is kept,
+        because a long silence starts a new conversation, judged on its own."""
+        closing = candidate(category="help_request", speaker="account_holder", segment_ids=[4])
+        decisions = decide([*self.fragments(), closing], SEGMENTS, priority_available=True)
+        self.assertEqual([d.candidate.category for d in decisions], ["scam_pressure"])
+
+    def test_joined_fragments_keep_their_full_stops(self) -> None:
+        parts = [
+            candidate(
+                category="scam_pressure",
+                summary="Told not to tell family",
+                segment_ids=[1],
+                scam_signals=["secrecy"],
+            ),
+            candidate(
+                category="scam_pressure",
+                summary="Asked for gift cards",
+                segment_ids=[3],
+                scam_signals=["gift_cards"],
+            ),
+        ]
+        [decision] = decide(parts, SEGMENTS, priority_available=True)
+        self.assertEqual(
+            decision.candidate.summary, "Told not to tell family. Asked for gift cards."
+        )
+
+    def test_one_appointment_per_conversation(self) -> None:
+        replies = [
+            candidate(category="appointment", summary="Thursday is off.", segment_ids=[1]),
+            candidate(
+                category="appointment",
+                summary="The cleaning moved to Friday at 2:30.",
+                segment_ids=[3],
+            ),
+        ]
+        [decision] = decide(replies, SEGMENTS, priority_available=True)
+        self.assertEqual(decision.candidate.summary, "The cleaning moved to Friday at 2:30.")
+        self.assertEqual(decision.candidate.segment_ids, (1, 3))
+
+    def test_summaries_start_with_a_capital(self) -> None:
+        [decision] = decide(
+            [candidate(category="shopping", summary="they need milk.", segment_ids=[1])],
+            SEGMENTS,
+            priority_available=True,
+        )
+        self.assertEqual(decision.candidate.summary, "They need milk.")
 
 
 class DignityRuleTests(unittest.TestCase):

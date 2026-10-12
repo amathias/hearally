@@ -1322,7 +1322,7 @@
       h("div", { class: "px-5 py-5 text-ink" }, [
         h("p", { class: "font-display text-xl font-semibold", text: "A call worth knowing about" }),
         h("p", { class: "mt-3" }, ["Hi ", h("span", { class: "font-bold text-amber-text", text: "Dana" }), ","]),
-        h("p", { class: "mt-3 leading-relaxed", text: "About " + holder + ": a caller said they were from the bank's fraud team, asked for a card number, and said not to mention it to family." }),
+        h("p", { class: "mt-3 leading-relaxed", text: "About " + holder + ": on a call, they questioned being asked for their whole card number and its security code, and said they would call their bank themselves." }),
         h("p", { class: "mt-4" }, [h("span", { class: "inline-block rounded-lg bg-teal px-4 py-2 font-semibold text-paper", text: "Open, or say it was nothing" })]),
       ]),
       h("p", { class: "border-t border-line px-5 py-3 text-[13px] text-muted", text: "Hearally is not an emergency service. In an emergency, call 911." }),

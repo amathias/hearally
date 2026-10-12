@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import dataclasses
 import io
 import json
 import unittest
@@ -10,7 +11,7 @@ from typing import Any
 from test_judgement import candidate
 
 from hearally.audio import incoming_key
-from hearally.judgement import CALL_TODAY, DAILY, PRIORITY, Decision
+from hearally.judgement import CALL_TODAY, DAILY, PRIORITY, Citation, Decision
 from hearally.learning import pattern_from
 from hearally.transcription import redacted_key, transcript_key
 from hearally.worker import Batch, Collector, Dispatcher, recording_sort_key
@@ -264,12 +265,30 @@ class CollectorTests(unittest.TestCase):
         self.assertNotIn(transcript_key(ACCOUNT, EVENT), self.s3.objects)
         self.assertNotIn("redacted", self.account.status[recording_sort_key(message())])
 
+    def test_a_named_scam_is_stored_with_its_sentence_and_source(self) -> None:
+        cited = Citation(
+            "gift-card-demand", "gift card payment scam", "FTC", "Gift cards", "https://x", 0.7
+        )
+        self.decisions = [dataclasses.replace(pressure(), pattern=cited)]
+        self.jobs.states["aijob-1"] = "COMPLETED"
+        self.collector().run()
+        [stored] = [v for k, v in self.account.items.items() if k.startswith("ITEM#")]
+        self.assertEqual(stored["named_script"], "gift-card-demand")
+        self.assertEqual(
+            stored["sounds_like"],
+            "This call sounds like the gift card payment scam described by the FTC.",
+        )
+        self.assertEqual(
+            stored["source"], {"title": "Gift cards", "publisher": "FTC", "url": "https://x"}
+        )
+
     def test_the_daily_priority_budget_is_enforced_in_code(self) -> None:
         self.account.budget.add("2026-09-30")
         self.jobs.states["aijob-1"] = "COMPLETED"
         self.collector().run()
         [item] = [v for k, v in self.account.items.items() if k.startswith("ITEM#")]
         self.assertEqual(item["grade"], CALL_TODAY)
+        self.assertEqual(item["reasons"], ["priority_budget_spent"])
         self.assertEqual(self.judged_with, [False])
         self.assertFalse(any(k.startswith("ALERT#") for k in self.account.items))
 
@@ -295,6 +314,7 @@ class CollectorTests(unittest.TestCase):
         self.collector().run()
         item = self.stored()
         self.assertEqual((item["grade"], item["learned"]), (DAILY, pattern["id"]))
+        self.assertEqual(item["reasons"], ["learned"])
         # Not raised, and today's one heads-up is still unspent.
         self.assertFalse(any(k.startswith("ALERT#") for k in self.account.items))
         self.assertEqual(self.account.budget, set())
@@ -351,6 +371,14 @@ class CollectorTests(unittest.TestCase):
         self.assertEqual(self.collector().run()["failed"], 1)
         self.assertEqual(self.account.status[recording_sort_key(message())]["status"], "failed")
         self.assertEqual(self.batches.open_batches(), [])
+
+    def test_a_starting_job_in_a_state_not_listed_is_left_running(self) -> None:
+        # Nebius reports states such as image pulling while a job starts.
+        self.jobs.states["aijob-1"] = "IMAGE_PULLING"
+        totals = self.collector().run()
+        self.assertEqual((totals["relaunched"], totals["failed"]), (0, 0))
+        [batch] = self.batches.open_batches()
+        self.assertEqual((batch.nebius_job, batch.attempts), ("aijob-1", 1))
 
     def test_a_missing_transcript_fails_that_recording_only(self) -> None:
         del self.s3.objects[transcript_key(ACCOUNT, EVENT)]

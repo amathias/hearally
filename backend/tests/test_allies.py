@@ -10,6 +10,7 @@ from typing import Any
 
 from hearally.allies import (
     NOT_EMERGENCY,
+    UNCLEAR_LINE,
     AllyLinkService,
     AllyNotFoundError,
     AllyService,
@@ -320,6 +321,50 @@ class DeliveryTests(AllyTestCase):
         plan_deliveries(self.repo, SUB, [entry], AFTERNOON)
         Deliverer(self.repo, self.mailer, self.clock).run()
         self.assertIn("also asking to keep it secret", self.mailer.sent[-1]["text"])
+
+    def named(self, url: str) -> dict[str, Any]:
+        """A heads-up whose call the judgement matched to a known scam."""
+        self.confirmed()
+        entry = dict(
+            item("priority"),
+            sounds_like="This call sounds like the gift card payment scam described by the FTC.",
+            source={"title": "Gift card scams", "publisher": "FTC", "url": url},
+        )
+        self.repo.put(SUB, entry["sk"], entry)
+        plan_deliveries(self.repo, SUB, [entry], AFTERNOON)
+        Deliverer(self.repo, self.mailer, self.clock).run()
+        return self.mailer.sent[-1]
+
+    def test_a_heads_up_names_the_known_scam_and_links_its_source(self) -> None:
+        mail = self.named("https://consumer.ftc.gov/gift-cards")
+        self.assertIn("sounds like the gift card payment scam described by the FTC", mail["text"])
+        self.assertIn(
+            "Read about it: Gift card scams (FTC), https://consumer.ftc.gov/gift-cards",
+            mail["text"],
+        )
+        self.assertIn('<a href="https://consumer.ftc.gov/gift-cards"', mail["html"])
+
+    def test_a_source_that_is_not_https_is_never_linked(self) -> None:
+        mail = self.named("javascript:alert(1)")
+        self.assertIn("sounds like the gift card payment scam", mail["text"])
+        self.assertNotIn("Read about it", mail["text"])
+        self.assertNotIn("javascript:", mail["html"])
+
+    def test_a_heads_up_from_an_unclear_recording_says_so(self) -> None:
+        self.confirmed()
+        entry = dict(item("priority"), reasons=["unclear_recording"])
+        self.repo.put(SUB, entry["sk"], entry)
+        plan_deliveries(self.repo, SUB, [entry], AFTERNOON)
+        Deliverer(self.repo, self.mailer, self.clock).run()
+        self.assertIn(UNCLEAR_LINE, self.mailer.sent[-1]["text"])
+
+    def test_a_clear_heads_up_has_no_unclear_note(self) -> None:
+        self.confirmed()
+        entry = item("priority")
+        self.repo.put(SUB, entry["sk"], entry)
+        plan_deliveries(self.repo, SUB, [entry], AFTERNOON)
+        Deliverer(self.repo, self.mailer, self.clock).run()
+        self.assertNotIn(UNCLEAR_LINE, self.mailer.sent[-1]["text"])
 
     def test_an_ally_who_stopped_meanwhile_gets_nothing(self) -> None:
         self.confirmed()

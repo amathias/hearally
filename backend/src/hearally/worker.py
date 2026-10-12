@@ -35,7 +35,7 @@ from datetime import UTC, datetime
 from typing import Any, Protocol
 
 from hearally.audio import incoming_key
-from hearally.judgement import CALL_TODAY, DAILY, NEVER_HELD, PRIORITY, Decision
+from hearally.judgement import CALL_TODAY, DAILY, NEVER_HELD, PRIORITY, Decision, sounds_like
 from hearally.learning import PREFIX as LEARNED_PREFIX
 from hearally.learning import TEACHES, check
 from hearally.topics import SORT_KEY as TOPICS_KEY
@@ -59,7 +59,10 @@ MAX_ATTEMPTS = 2
 # A job still not finished after this is treated as failed: the job itself
 # is cancelled by its own timeout long before (transcriber JOB_TIMEOUT).
 STALE_SECONDS = 4 * 60 * 60
-RUNNING = frozenset({"CREATING", "PROVISIONING", "PENDING", "STARTING", "RUNNING", "UNKNOWN"})
+# Only these count as a failed job. Any other state, including ones Nebius
+# adds later (it reports "image pulling" while starting), is still running
+# until STALE_SECONDS: a startup state once read as a failure relaunched a
+# healthy job and then gave up on its recordings (2026-10-10).
 FAILED = frozenset({"FAILED", "ERROR", "CANCELLED"})
 
 
@@ -258,6 +261,25 @@ class SqsWorkQueue:
             )
 
 
+def _log_decision(decision: Decision, grade: str | None, reasons: Sequence[str]) -> None:
+    """Why each item got its grade: labels and numbers, never what was said."""
+    clarity = decision.clarity
+    LOGGER.info(
+        "Decision: %s",
+        {
+            "category": decision.candidate.category,
+            "model_grade": decision.grade,
+            "grade": grade,
+            "reasons": list(reasons),
+            "signals": len(decision.candidate.scam_signals),
+            "words": clarity.words if clarity else None,
+            "median": round(clarity.median, 3) if clarity else None,
+            "cited_words": clarity.cited_words if clarity else None,
+            "cited_median": round(clarity.cited_median, 3) if clarity else None,
+        },
+    )
+
+
 def _recording_entry(message: dict[str, Any]) -> dict[str, Any] | None:
     account, event = message.get("account_id"), message.get("event_id")
     if not isinstance(account, str) or not isinstance(event, str):
@@ -354,7 +376,7 @@ class Collector:
             totals["batches"] += 1
             state = self._jobs.state(batch.nebius_job)
             stale = self._clock() - batch.created_epoch > STALE_SECONDS
-            if state in RUNNING and not stale:
+            if state != "COMPLETED" and state not in FAILED and not stale:
                 continue
             if state == "COMPLETED":
                 for entry in batch.recordings:
@@ -500,10 +522,14 @@ class Collector:
             # What allies said was nothing, before the budget: an item that
             # goes to the daily list must not spend today's heads-up.
             learned = check(patterns, d.candidate.category, signals, now)
+            reasons = list(d.reasons)
             if learned.pattern and grade in TEACHES:
                 grade = DAILY
+                reasons.append("learned")
             if grade == PRIORITY and not self._account.claim_priority(account, day, now):
                 grade = CALL_TODAY  # another heads-up already used today's
+                reasons.append("priority_budget_spent")
+            _log_decision(d, grade, reasons)
             item = {
                 "id": item_id,
                 "spoken_at": spoken_at,
@@ -511,11 +537,22 @@ class Collector:
                 "grade": grade,
                 "summary": d.candidate.summary,
                 "signals": signals,
+                # Why the grade is what it is (judgement.decide's reasons and
+                # the ones added here), so a lowered grade can be explained.
+                "reasons": reasons,
                 "language": "en",
                 "ttl_epoch": expires,
             }
             if d.pattern:
                 item["named_script"] = d.pattern.pattern_id
+                # What the heads-up says it sounded like, and the public page
+                # it links to (allies.Deliverer._send).
+                item["sounds_like"] = sounds_like(d.pattern)
+                item["source"] = {
+                    "title": d.pattern.title,
+                    "publisher": d.pattern.publisher,
+                    "url": d.pattern.url,
+                }
             if learned.pattern and d.grade in TEACHES:
                 item["learned"] = str(learned.pattern["id"])
                 self._account.note_learned(

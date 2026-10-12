@@ -77,13 +77,13 @@ class AwsNotifySmsSender:
         expires_at: int,
         locale: str,
     ) -> str:
+        # AWS End User Messaging's SendNotifyTextMessage takes the configuration,
+        # template and variables as separate top-level fields.
         response = self._client.send_notify_text_message(
-            ConfigurationId=self._configuration_id,
+            NotifyConfigurationId=self._configuration_id,
             DestinationPhoneNumber=phone_e164,
-            MessageTemplate={
-                "TemplateId": self._template_id,
-                "TemplateVariables": {"code": code},
-            },
+            TemplateId=self._template_id,
+            TemplateVariables={"code": code},
             TimeToLive=600,
             Context={"challenge_id": challenge_id, "locale": locale},
         )

@@ -3,7 +3,8 @@
     dispatch_handler   every 30 minutes: queue -> one batch -> GPU job
     collect_handler    every 10 minutes: finished job -> judged items
 
-Neither is on the API. Each returns counts, which is all it logs.
+Neither is on the API. Each returns counts; the collector also logs why each
+item got its grade, as labels and numbers only.
 """
 
 from __future__ import annotations
@@ -13,6 +14,8 @@ from typing import Any
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
+# The collector's "Decision:" lines (worker._log_decision).
+logging.getLogger("hearally.worker").setLevel(logging.INFO)
 
 
 def dispatch_handler(event: dict[str, Any], context: Any) -> dict[str, int]:
