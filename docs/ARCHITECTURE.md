@@ -49,6 +49,10 @@ A curated library of common phone and doorstep scams (grandparent, government im
 - **Kept current weekly with Tavily**: fixed searches of trusted publishers only. Code accepts a new card only if it describes one phone or doorstep scam and is not a near-duplicate of an existing card.
 - Evaluation: `docs/eval/scam-retrieval.md`.
 
+![How the scam library is kept current with Tavily, embedded with Qwen3, and used by Nemotron](images/scam-library.png)
+
+The counts in the picture are from October 2026.
+
 ## 6. The dignity filter
 
 A recorder that runs through someone's day captures things that are nobody else's business. Every item passes the dignity filter before it can reach an ally, and **no ally can turn it off**.
@@ -66,7 +70,7 @@ A recorder that runs through someone's day captures things that are nobody else'
 
 ## 7. Allies and what gets sent
 
-- **Adding an ally**: name, email, an optional relationship, and what they hear: *heads-ups, calls and the daily list*, *heads-ups only*, or *nothing for now*. Up to five; one is the **first ally**.
+- **Adding an ally**: name, email, an optional relationship, and what they hear: *everything (heads-ups, worth a call today, the daily list)*, *heads-ups only*, or *nothing for now*. Up to five; one is the **first ally**.
 - **The ally link**: a 256-bit random token, of which only a digest is stored. It travels in the URL **fragment** (`/a/#t=…`), which browsers never send to a server, and the ally page posts it in request bodies. Removing an ally revokes their link at once.
 - **Allies consent too.** Before anything reaches them, an ally reads five short statements (not an emergency service, will miss things, may be nothing, nobody is on duty, can stop at any time), ticks one box agreeing to them and to the terms of use and privacy policy, and confirms. Each decision is recorded, append-only.
 - **Delivery**, enforced in code:
@@ -98,6 +102,8 @@ Before any recording comes in, the account holder reads four points (not an emer
 - **Product rules live in code and conditional writes**, never in model prompts: the heads-up budget, quiet hours, the dignity matrix, the confidence gate.
 
 ## 11. AWS architecture and data model
+
+![The path from a recording to an ally: recorder, AWS intake and queue, the Parakeet job on Nebius AI Cloud, Nemotron and Qwen3 on Nebius Token Factory, then the code that decides and sends](images/architecture.png)
 
 ```
 Plaud ── Plaud sign-in (every 15 min) ──┐

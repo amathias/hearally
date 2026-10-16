@@ -333,6 +333,36 @@
     return isNaN(date) ? "" : date.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
   }
 
+  // Inside a day's group the date is already in the heading.
+  function timeOf(value) {
+    var date = new Date(value);
+    return isNaN(date) ? "" : date.toLocaleTimeString(undefined, { timeStyle: "short" });
+  }
+
+  function dateOf(value) {
+    var date = new Date(value);
+    return isNaN(date) ? "" : date.toLocaleDateString(undefined, { dateStyle: "medium" });
+  }
+
+  // "21:00" as the reader's own clock shows it: "9:00 PM".
+  function clock(hhmm) {
+    var parts = String(hhmm || "").split(":");
+    var date = new Date(2000, 0, 1, Number(parts[0]), Number(parts[1] || 0));
+    return isNaN(date) ? String(hhmm || "") : date.toLocaleTimeString(undefined, { timeStyle: "short" });
+  }
+
+  // "America/Chicago" as "Central Time", or the city where the browser cannot say.
+  function zoneName(zone) {
+    try {
+      var parts = new Intl.DateTimeFormat(undefined, { timeZone: zone, timeZoneName: "longGeneric" }).formatToParts(new Date());
+      var name = parts.filter(function (part) { return part.type === "timeZoneName"; })[0];
+      if (name && name.value) return name.value;
+    } catch (e) {
+      // fall through to the city
+    }
+    return String(zone || "").split("/").pop().replace(/_/g, " ") + " time";
+  }
+
   function list(items, render) {
     return h("ul", { class: "divide-y divide-line border-y border-line" }, items.map(render));
   }
@@ -362,7 +392,7 @@
     return b ? h("span", { class: "rounded px-2 py-0.5 font-sans text-[11px] font-bold uppercase tracking-[0.12em] " + b[1], text: b[0] }) : null;
   }
 
-  function summaryRow(item, sentTo) {
+  function summaryRow(item, sentTo, timeOnly) {
     var learned = item.learned
       ? "Kept for the daily list: an ally said something like this was nothing."
       : item.new_signals && item.new_signals.length
@@ -374,7 +404,7 @@
         h("span", { class: "font-sans text-sm font-semibold text-muted", text: CATEGORY_WORDS[item.category] || "" }),
       ]),
       h("p", { class: "mt-1.5", text: item.summary || "" }),
-      h("p", { class: "mt-1 font-sans text-sm text-muted", text: when(item.spoken_at) }),
+      h("p", { class: "mt-1 font-sans text-sm text-muted", text: timeOnly ? timeOf(item.spoken_at) : when(item.spoken_at) }),
       learned ? h("p", { class: "mt-1 font-sans text-sm text-amber-text", text: learned }) : null,
       sentTo && sentTo[item.id] && sentTo[item.id].length
         ? h("p", { class: "mt-1 font-sans text-sm text-muted" }, [
@@ -400,7 +430,7 @@
     ["daily", "Daily list"],
   ];
 
-  function summariesList(items, sentTo) {
+  function summariesList(items, sentTo, heldBack) {
     var current = "all";
     var holder = h("div", {});
     var bar = h("div", { class: "flex flex-wrap gap-2", role: "group", "aria-label": "Show" });
@@ -421,7 +451,18 @@
             draw();
           });
           return chip;
-        }),
+        }).concat(
+          heldBack
+            ? [
+                // Not a filter: held-back moments are listed apart, further down.
+                h("a", {
+                  href: "#held-back",
+                  class: "rounded-full border border-dashed border-line px-3 py-1.5 font-sans text-sm font-semibold text-muted no-underline hover:bg-sand",
+                  text: "Held back (" + heldBack + ") ↓",
+                }),
+              ]
+            : [],
+        ),
       );
       var shown = items.filter(function (i) { return current === "all" || i.grade === current; });
       if (!shown.length) {
@@ -442,7 +483,7 @@
           return h("section", { class: "mt-6" }, [
             h("h3", { class: "font-sans text-sm font-bold text-muted", text: day.key }),
             list(day.items, function (item) {
-              return summaryRow(item, sentTo);
+              return summaryRow(item, sentTo, true);
             }),
           ]);
         }),
@@ -603,11 +644,11 @@
       var used = p.matched ? " · used " + p.matched + (p.matched === 1 ? " time" : " times") : "";
       return h("li", { class: "flex flex-wrap items-start justify-between gap-3 py-4" }, [
         h("div", { class: "min-w-0 max-w-[40rem]" }, [
-          h("p", { class: "font-semibold", text: kind + (p.signals && p.signals.length ? ", with " + signalWords(p.signals) : "") }),
+          h("p", { class: "font-semibold", text: kind + (p.signals && p.signals.length ? " that involved " + signalWords(p.signals) : "") }),
           h("p", { class: "mt-1", text: "Now kept for the daily list, unless something new comes up." }),
           h("p", { class: "mt-1 font-sans text-sm text-muted" }, [
             h("span", { class: "font-semibold text-amber-text", text: p.ally_name || "An ally" }),
-            " said \u201c" + (DISMISS_WORDS[p.reason] || "This was nothing") + "\u201d · learned " + when(p.learned_at) + used + " · until " + when(p.expires_at),
+            " said \u201c" + (DISMISS_WORDS[p.reason] || "This was nothing") + "\u201d · learned " + dateOf(p.learned_at) + used + " · lasts until " + dateOf(p.expires_at),
           ]),
         ]),
         button("Remove", function () {
@@ -995,7 +1036,9 @@
               text:
                 {
                   received: "Received, transcribing within the hour",
-                  transcribed: r.items ? "Transcribed · " + r.items + " to pass on" : "Transcribed · nothing to pass on",
+                  transcribed:
+                    (r.items ? "Transcribed · " + r.items + " to pass on" : "Transcribed · nothing to pass on") +
+                    (r.held_back ? " · " + r.held_back + " held back" : ""),
                   failed: "Could not be transcribed",
                 }[r.status] || r.status,
             }),
@@ -1152,7 +1195,7 @@
   // Amber is the ally's colour: their names are amber wherever they appear.
 
   var LEVELS = [
-    ["alerts_and_items", "Heads-ups, calls and the daily list"],
+    ["alerts_and_items", "Everything: heads-ups, worth a call today, daily list"],
     ["alerts_only", "Heads-ups only"],
     ["off", "Nothing for now"],
   ];
@@ -1288,13 +1331,13 @@
             a.status === "confirmed" && a.level !== "off"
               ? h("p", {
                   class: "mt-1 font-sans text-xs text-muted",
-                  text: a.calls && a.phone_last4 ? "Phone calls for heads-ups: on · •••" + a.phone_last4 : "Phone calls: off",
+                  text: a.calls && a.phone_last4 ? "Phone calls for heads-ups: on · •••" + a.phone_last4 : "Phone calls for heads-ups: off (their choice, on their page)",
                 })
               : null,
             a.status === "confirmed" && a.level === "alerts_and_items"
               ? h("p", {
                   class: "mt-1 font-sans text-xs text-muted",
-                  text: "Quiet " + (a.quiet_start || "21:00") + "–" + (a.quiet_end || "08:00") + " · daily list " + (a.digest_time || "18:00") + (a.timezone ? " · " + a.timezone : ""),
+                  text: "Quiet " + clock(a.quiet_start || "21:00") + "–" + clock(a.quiet_end || "08:00") + " · daily list at " + clock(a.digest_time || "18:00") + (a.timezone ? " · " + zoneName(a.timezone) : ""),
                 })
               : null,
           ].filter(Boolean)),
@@ -1581,7 +1624,7 @@
           ? list(d.alerts, function (a) {
               return h("li", { class: "py-4" }, [
                 h("p", { text: a.summary || "" }),
-                h("p", { class: "mt-1 font-sans text-sm text-muted", text: [when(a.created_at), a.status].filter(Boolean).join(" · ") }),
+                h("p", { class: "mt-1 font-sans text-sm text-muted", text: [when(a.created_at), a.status === "raised" ? "" : a.status].filter(Boolean).join(" · ") }),
               ]);
             })
           : empty("No heads-ups have been raised.", "A heads-up is raised when a call sounds like a common scam script. There will be at most one a day."),
@@ -1616,7 +1659,7 @@
     summaries: function (d) {
       return [
         d.summaries.length
-          ? summariesList(d.summaries, d.sent_to || {})
+          ? summariesList(d.summaries, d.sent_to || {}, d.held_back.length)
           : empty(
               "No summaries yet.",
               "A summary is a sentence or two about something worth passing on, such as a new appointment. They appear here once a recording is transcribed, usually within an hour.",

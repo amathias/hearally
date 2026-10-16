@@ -8,6 +8,7 @@
 | [adr/](adr/) | Architecture decisions: the monorepo and copied engine, production only |
 | [contracts/](contracts/) | The collector's pairing and upload contract, and the transcript format |
 | [eval/](eval/) | How scam-script retrieval was evaluated |
+| [images/](images/) and [diagrams/](diagrams/) | The two overview pictures used in ARCHITECTURE.md, and the HTML they are rendered from (1920×1080, headless Chrome) |
 | [brand/](../brand/) | Logo, palette and the sign-in style. Usage rules in [brand/README.md](../brand/README.md) |
 
 ## The one rule to carry into the build

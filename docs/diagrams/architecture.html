@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Architecture</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap">
+<style>
+  :root { --ink:#14243a; --ink2:#4a5a70; --paper:#fdfcfa; --sand:#f6f1e8; --teal:#1f6f6b; --teal-soft:#e6f1ef; --teal-line:#b9d6d1; --line:#d9d2c4; --amber:#996131; }
+  * { box-sizing:border-box; margin:0; }
+  html, body { width:1920px; height:1080px; background:var(--paper); color:var(--ink); font-family:Inter, "Segoe UI", sans-serif; }
+  body { padding:64px 80px; display:flex; flex-direction:column; justify-content:center; }
+  .kicker { font-size:22px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--teal); }
+  h1 { font-family:Fraunces, Georgia, serif; font-weight:600; font-size:60px; line-height:1.1; margin-top:10px; }
+  .flow { display:grid; grid-template-columns:1fr 44px 1fr 44px 1fr 44px 1fr 44px 1fr; align-items:stretch; margin-top:48px; }
+  .card { background:#fff; border:1.5px solid var(--line); border-radius:22px; padding:26px 24px; display:flex; flex-direction:column; gap:12px; min-height:470px; }
+  .card.nebius { background:var(--teal-soft); border-color:var(--teal-line); }
+  .where { font-size:16px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--amber); }
+  .nebius .where { color:var(--teal); }
+  h2 { font-size:27px; font-weight:700; line-height:1.2; }
+  p, li { font-size:20px; line-height:1.45; color:var(--ink2); }
+  ul { padding-left:20px; display:flex; flex-direction:column; gap:6px; }
+  .tag { display:inline-block; font-size:15px; font-weight:600; padding:5px 11px; border-radius:999px; background:var(--ink); color:#fff; margin:0 5px 5px 0; }
+  .tag.soft { background:var(--sand); color:var(--ink); }
+  .tags { margin-top:auto; }
+  .arrow { display:flex; align-items:center; justify-content:center; }
+  .arrow svg { width:34px; height:34px; }
+  .bands { display:grid; grid-template-columns:1fr 1.5fr; gap:28px; margin-top:32px; }
+  .band { border-radius:22px; padding:30px 32px; display:flex; flex-direction:column; gap:10px; justify-content:center; }
+  .band.side { background:var(--teal-soft); border:1.5px solid var(--teal-line); }
+  .band.base { background:var(--ink); color:#fff; }
+  .band.base p { color:#c9d3e0; }
+  .band.base .where { color:#9fd8d1; }
+  .band h2 { font-size:25px; }
+  .band.side .where { color:var(--teal); }
+  .band .tag { background:rgba(255,255,255,.14); }
+  .band.side .tag { background:var(--ink); }
+</style>
+</head>
+<body>
+  <div class="kicker">How it is built</div>
+  <h1>From a spoken sentence to the right person</h1>
+
+  <div class="flow">
+    <div class="card">
+      <div class="where">The recorder</div>
+      <h2>A wearable recorder</h2>
+      <ul>
+        <li>The account holder signs in once, on the recorder's own consent page.</li>
+        <li>New recordings are fetched every 15 minutes.</li>
+      </ul>
+      <div class="tags"><span class="tag soft">Plaud today</span><span class="tag soft">Bee coming soon</span></div>
+    </div>
+    <div class="arrow"><svg viewBox="0 0 24 24" fill="none" stroke="#1f6f6b" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15M13 6l6 6-6 6"/></svg></div>
+
+    <div class="card">
+      <div class="where">AWS</div>
+      <h2>Intake and queue</h2>
+      <ul>
+        <li>Audio is stored with its checksum verified.</li>
+        <li>One batch at a time goes out, by a signed link.</li>
+      </ul>
+      <div class="tags"><span class="tag soft">S3</span><span class="tag soft">SQS FIFO</span><span class="tag soft">Lambda</span></div>
+    </div>
+    <div class="arrow"><svg viewBox="0 0 24 24" fill="none" stroke="#1f6f6b" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15M13 6l6 6-6 6"/></svg></div>
+
+    <div class="card nebius">
+      <div class="where">Nebius AI Cloud</div>
+      <h2>Transcribe and silence</h2>
+      <ul>
+        <li>A GPU job we launch for each batch, then it ends.</li>
+        <li>Card and account numbers are silenced in the audio itself.</li>
+      </ul>
+      <div class="tags"><span class="tag">NVIDIA Parakeet</span><span class="tag soft">RTX PRO 6000</span></div>
+    </div>
+    <div class="arrow"><svg viewBox="0 0 24 24" fill="none" stroke="#1f6f6b" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15M13 6l6 6-6 6"/></svg></div>
+
+    <div class="card nebius">
+      <div class="where">Nebius Token Factory</div>
+      <h2>Describe and match</h2>
+      <ul>
+        <li>Nemotron describes what was said, with numbers masked first.</li>
+        <li>Qwen3 embeddings find the closest known scams.</li>
+      </ul>
+      <div class="tags"><span class="tag">NVIDIA Nemotron 3 Super</span><span class="tag">Qwen3-Embedding-8B</span></div>
+    </div>
+    <div class="arrow"><svg viewBox="0 0 24 24" fill="none" stroke="#1f6f6b" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15M13 6l6 6-6 6"/></svg></div>
+
+    <div class="card">
+      <div class="where">AWS</div>
+      <h2>Code decides, then sends</h2>
+      <ul>
+        <li>Heads-up, worth a call today, daily list, or held back.</li>
+        <li>Learns from "this was nothing"; one heads-up a day.</li>
+      </ul>
+      <div class="tags"><span class="tag soft">DynamoDB</span><span class="tag soft">SES email</span><span class="tag soft">ally page</span></div>
+    </div>
+  </div>
+
+  <div class="bands">
+    <div class="band side">
+      <div class="where">Every week</div>
+      <h2>The scam library stays current</h2>
+      <p>Fixed searches of trusted publishers. Nemotron writes each new scam up; code checks it before it is added.</p>
+      <div><span class="tag">Tavily</span></div>
+    </div>
+    <div class="band base">
+      <div class="where">Underneath</div>
+      <h2>Serverless on AWS, all in Terraform</h2>
+      <p>One Lambda function per job, each with its own role. Open source.</p>
+      <div><span class="tag">Route 53</span><span class="tag">CloudFront + WAF</span><span class="tag">API Gateway</span><span class="tag">Cognito</span><span class="tag">Lambda</span><span class="tag">Secrets Manager</span><span class="tag">CloudWatch</span></div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Scam knowledge</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap">
+<style>
+  :root { --ink:#14243a; --ink2:#4a5a70; --paper:#fdfcfa; --sand:#f6f1e8; --teal:#1f6f6b; --teal-soft:#e6f1ef; --line:#d9d2c4; --nv:#76b900; }
+  * { box-sizing:border-box; margin:0; }
+  html, body { width:1920px; height:1080px; background:var(--paper); color:var(--ink); font-family:Inter, "Segoe UI", sans-serif; }
+  body { padding:72px 96px; display:flex; flex-direction:column; }
+  .kicker { font-size:22px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--teal); }
+  h1 { font-family:Fraunces, Georgia, serif; font-weight:600; font-size:64px; line-height:1.1; margin-top:12px; }
+  .lede { font-size:26px; color:var(--ink2); margin-top:14px; }
+  .flow { display:grid; grid-template-columns:1fr 64px 1fr 64px 1fr; align-items:stretch; margin-top:56px; flex:1; }
+  .card { background:#fff; border:1.5px solid var(--line); border-radius:24px; padding:36px 34px; display:flex; flex-direction:column; gap:18px; }
+  .card.mid { background:var(--teal-soft); border-color:#b9d6d1; }
+  .step { font-size:18px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--teal); }
+  h2 { font-size:32px; font-weight:700; line-height:1.2; }
+  p, li { font-size:21px; line-height:1.45; color:var(--ink2); }
+  ul { padding-left:24px; display:flex; flex-direction:column; gap:8px; }
+  .tag { display:inline-block; font-size:17px; font-weight:600; padding:6px 12px; border-radius:999px; background:var(--sand); color:var(--ink); margin:0 6px 6px 0; }
+  .tag.tool { background:var(--ink); color:#fff; }
+  .stat { display:flex; gap:28px; margin-top:auto; padding-top:18px; border-top:1.5px solid var(--line); }
+  .stat b { display:block; font-family:Fraunces, Georgia, serif; font-size:52px; font-weight:600; color:var(--teal); line-height:1; }
+  .stat span { font-size:18px; color:var(--ink2); }
+  .arrow { display:flex; align-items:center; justify-content:center; }
+  .arrow svg { width:44px; height:44px; }
+  .foot { margin-top:40px; display:flex; justify-content:space-between; align-items:center; font-size:20px; color:var(--ink2); }
+  .foot strong { color:var(--ink); }
+  .rule { background:var(--ink); color:#fff; border-radius:18px; padding:20px 28px; font-size:22px; }
+  .rule b { color:#9fd8d1; }
+</style>
+</head>
+<body>
+  <div class="kicker">Retrieval-augmented judgement</div>
+  <h1>How Hearally knows the common scams</h1>
+  <p class="lede">A library of known phone and doorstep scams, kept current every week, matched to each conversation by meaning.</p>
+
+  <div class="flow">
+    <div class="card">
+      <div class="step">1 · Every week</div>
+      <h2>Tavily searches trusted publishers</h2>
+      <div><span class="tag tool">Tavily</span><span class="tag">FTC</span><span class="tag">AARP</span><span class="tag">IRS</span><span class="tag">SSA</span><span class="tag">IC3</span><span class="tag">Medicare.gov</span></div>
+      <ul>
+        <li>Fixed searches only: nothing from anyone's conversations is sent.</li>
+        <li>Nemotron reads each new page and writes a scam card in its own words.</li>
+        <li>Code accepts a card only if it is one phone or doorstep scam and not a near-duplicate.</li>
+      </ul>
+      <div class="stat"><div><b>81</b><span>pages read</span></div><div><b>5</b><span>new scams added</span></div></div>
+    </div>
+
+    <div class="arrow"><svg viewBox="0 0 24 24" fill="none" stroke="#1f6f6b" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15M13 6l6 6-6 6"/></svg></div>
+
+    <div class="card mid">
+      <div class="step">2 · The library</div>
+      <h2>Every scam card is embedded</h2>
+      <div><span class="tag tool">Qwen3-Embedding-8B</span><span class="tag">Nebius Token Factory</span></div>
+      <ul>
+        <li>Grandparent, government impersonation, jury duty, Medicare, bank impostor, tech support and more.</li>
+        <li>Each card keeps its publisher and source link.</li>
+        <li>4,096-dimension vectors, compared by cosine similarity.</li>
+      </ul>
+      <div class="stat"><div><b>27</b><span>scam scripts</span></div><div><b>22</b><span>curated + 5 found</span></div></div>
+    </div>
+
+    <div class="arrow"><svg viewBox="0 0 24 24" fill="none" stroke="#1f6f6b" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15M13 6l6 6-6 6"/></svg></div>
+
+    <div class="card">
+      <div class="step">3 · Each conversation</div>
+      <h2>The closest scams go to Nemotron</h2>
+      <div><span class="tag tool">Nemotron 3 Super</span><span class="tag">numbers masked first</span></div>
+      <ul>
+        <li>The transcript is embedded and matched against the library.</li>
+        <li>Close cards are shown to Nemotron as reference, never as evidence.</li>
+        <li>A heads-up names a scam, with its source, only when three agree.</li>
+      </ul>
+      <div class="stat"><div><b>12/12</b><span>test scams named</span></div><div><b>0/10</b><span>look-alikes flagged</span></div></div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <div class="rule">Named only when <b>Nemotron's judgement</b>, <b>Nemotron's match</b> and <b>the retrieval score</b> all agree. A name never changes the grade.</div>
+    <div>Evaluation: 22 invented calls</div>
+  </div>
+</body>
+</html>

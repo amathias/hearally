@@ -18,6 +18,8 @@ Live at [hearally.com](https://hearally.com), with a signed-in dashboard at [hea
 
 **What works today:** sign-up with the terms and privacy policy, the in-app acknowledgement, both ways in, transcription with Parakeet on Nebius (account numbers silenced in the audio, transcripts deleted once read), the judgement with Nemotron and known scam scripts, and allies by email: invitation, confirmation on the ally's own page, heads-ups, "worth a call today", a daily list, and "this was nothing". Learning from "this was nothing" works too, and an ally can choose a phone call for heads-ups (CALL-E), after confirming their number by text. Text messages to allies are not part of the preview.
 
+![How Hearally is built: a wearable recorder, AWS intake, a Parakeet GPU job on Nebius AI Cloud, Nemotron and Qwen3 on Nebius Token Factory, then code that decides what each ally hears](docs/images/architecture.png)
+
 ## Built for the Nebius × NVIDIA Global AI Hackathon
 
 Personal AI track. NVIDIA Parakeet for transcription with word timestamps and per-segment confidence, run on our own Nebius AI Cloud GPU; NVIDIA Nemotron for the judgement, on Nebius Token Factory.
@@ -26,7 +28,7 @@ Personal AI track. NVIDIA Parakeet for transcription with word timestamps and pe
 
 Hearally reuses the design and parts of the engine of an earlier prototype by the same author, built for a different wearable and a different model provider. The engine was copied into this repository and has diverged (see `docs/adr/0001-monorepo-and-copied-engine.md`). New in Hearally:
 
-- **Capture is Plaud.** The audio is ours, and the Plaud Note records **both sides of a phone call** at hardware level. The heads-up hears the caller, not only the account holder.
+- **Capture is a wearable recorder** (Plaud today). Hearally works from the account holder's own words: often only their side of a call is recorded, and that is enough to tell what the call was about.
 - **Models are NVIDIA open weights on Nebius**, not a managed service.
 - **Redaction happens in the audio.** Account numbers are silenced in the waveform by the GPU job; the original is deleted as soon as the silenced copy exists.
 - **Known scam scripts.** A curated library from the FTC, AARP, the IRS, the SSA and others, retrieved with embeddings on Nebius and kept current weekly with Tavily.
