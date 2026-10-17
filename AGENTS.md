@@ -23,7 +23,7 @@ Use `ALLY` in APIs and data records. Do not use `contact`, `care circle` or `fir
 
 ## Colour convention
 
-**Amber `#E8934A` is the ally. Sand `#F6F1E8` (on dark) or teal `#1F6F6B` (on light) is the account holder.** This is a product rule, not only a logo rule: use amber anywhere allies appear — ally names, ally links, the "what your allies heard" log. Flag colour `#B4462F` is muted brick, never siren red. Nothing here should look like an alarm. Tokens live in `brand/palette.css`; rules in `brand/README.md`.
+**Amber `#E8934A` is the ally. Sand `#F6F1E8` (on dark) or teal `#1F6F6B` (on light) is the account holder.** This is a product rule, not only a logo rule: use amber anywhere allies appear - ally names, ally links, the "what your allies heard" log. Flag colour `#B4462F` is muted brick, never siren red. Nothing here should look like an alarm. Tokens live in `brand/palette.css`; rules in `brand/README.md`.
 
 ## Data boundary
 
@@ -35,13 +35,13 @@ Use `ALLY` in APIs and data records. Do not use `contact`, `care circle` or `fir
 - **The dignity filter (ARCHITECTURE.md section 6) runs before anything reaches an ally, and cannot be disabled by an ally.** Media playback never becomes an item. A sensitive item is never quoted verbatim and never carries an evidence clip, at any consent tier. Sensitive and not relevant means dropped.
 - Daily transcript copies are per-ally, off by default, dignity-filtered, assembled at delivery and never persisted.
 - Never log request bodies, transcripts, audio URLs, pairing codes, device tokens, ally contact details or signed link tokens.
-- Enforce product rules — the one-per-24-hours priority budget, suppression patterns, quiet hours — in **code and conditional writes, not in model prompts**.
+- Enforce product rules - the one-per-24-hours priority budget, suppression patterns, quiet hours - in **code and conditional writes, not in model prompts**.
 
 ## Engineering conventions
 
 - Monorepo with independently deployable `collector`, `backend`, `web` and `infra`. See `docs/adr/0001-monorepo-and-copied-engine.md`.
 - **Production is the only environment.** Resources are `hearally-prod-*`. No `-dev`, no `-test`, no `-staging`, no environment selector variable. See `docs/adr/0002-production-only.md`.
-- `us-east-1` only. Terraform only — no console changes. State in `holds-terraform-state-files` under `hearally/prod.tfstate`.
+- `us-east-1` only. Terraform only - no console changes. State in `holds-terraform-state-files` under `hearally/prod.tfstate`.
 - **One exception to Terraform-only:** the AWS Notify configuration. The provider ships no `sms-voice` resources, so `backend/src/hearally/configure_notify.py` creates it and Terraform grants the IAM actions. Do not try to move it into Terraform until a resource exists.
 - Keep the Python backend a modular monolith: handlers, services, repositories, providers. No internal services, containers or Step Functions without a recorded decision.
 - Keep model and delivery providers behind interfaces. Default external messaging to mock mode in development.

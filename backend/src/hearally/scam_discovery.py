@@ -215,7 +215,8 @@ def extraction_request(page: Page, known: Sequence[Card]) -> dict[str, Any]:
 
 def clean_title(title: str) -> str:
     """A page title without the site's name tacked on after a separator."""
-    return re.split(r"\s+[|–—-]\s+", title.strip(), maxsplit=1)[0].strip()
+    # Separators publishers use: a bar, an en or em dash (written as escapes), a hyphen.
+    return re.split(r"\s+[|\u2013\u2014-]\s+", title.strip(), maxsplit=1)[0].strip()
 
 
 def slug(name: str) -> str:

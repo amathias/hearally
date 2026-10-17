@@ -1,4 +1,4 @@
-/* Hearally design tokens — brand/palette.css */
+/* Hearally design tokens - brand/palette.css */
 :root {
   --ha-ink:    #14243A;  /* text, dark surfaces, the card */
   --ha-teal:   #1F6F6B;  /* primary action; the account holder on light backgrounds */
@@ -9,7 +9,7 @@
   --ha-line:   #E8E2D8;  /* borders */
   --ha-muted:  #5A6672;  /* secondary text on light */
   --ha-muted-on-dark: #9FB0AE;
-  --ha-flag:   #B4462F;  /* needs attention — muted brick, NEVER siren red */
+  --ha-flag:   #B4462F;  /* needs attention - muted brick, NEVER siren red */
   --ha-ok:     #3E7A52;  /* acknowledged, claimed */
 
   --ha-radius-card: 18px;

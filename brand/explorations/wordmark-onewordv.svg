@@ -1,37 +1,37 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 620" width="900" height="620" font-family="Inter, 'Segoe UI', system-ui, sans-serif" role="img" aria-label="Wordmark treatments for hearally">
   <title>Wordmark treatments: one word versus two</title>
   <rect width="900" height="620" fill="#14243A"/>
-  <text x="48" y="52" font-size="15" fill="#9FB0AE" letter-spacing="1.5">WORDMARK TREATMENTS — 2026-09-23</text>
+  <text x="48" y="52" font-size="15" fill="#9FB0AE" letter-spacing="1.5">WORDMARK TREATMENTS - 2026-09-23</text>
   <line x1="48" y1="70" x2="852" y2="70" stroke="#2A3A52"/>
 
   <!-- A: current -->
-  <text x="48" y="108" font-size="13" fill="#9FB0AE" letter-spacing="1.2">A — CURRENT</text>
+  <text x="48" y="108" font-size="13" fill="#9FB0AE" letter-spacing="1.2">A - CURRENT</text>
   <text x="48" y="162" font-size="56" font-weight="600" fill="#F6F1E8">hear<tspan fill="#E8934A" font-weight="700">Ally</tspan></text>
   <text x="430" y="150" font-size="15" fill="#9FB0AE">Capital A plus amber. Two signals</text>
   <text x="430" y="172" font-size="15" fill="#9FB0AE">doing one job.</text>
   <line x1="48" y1="196" x2="852" y2="196" stroke="#2A3A52"/>
 
   <!-- B: lowercase -->
-  <text x="48" y="234" font-size="13" fill="#E8934A" letter-spacing="1.2">B — ONE WORD, AMBER CARRIES IT</text>
+  <text x="48" y="234" font-size="13" fill="#E8934A" letter-spacing="1.2">B - ONE WORD, AMBER CARRIES IT</text>
   <text x="48" y="288" font-size="56" font-weight="600" fill="#F6F1E8">hear<tspan fill="#E8934A" font-weight="700">ally</tspan></text>
   <text x="430" y="276" font-size="15" fill="#F6F1E8">Reads as one word. The ally is still</text>
   <text x="430" y="298" font-size="15" fill="#F6F1E8">marked, by the colour convention.</text>
   <line x1="48" y1="322" x2="852" y2="322" stroke="#2A3A52"/>
 
   <!-- C: sentence case -->
-  <text x="48" y="360" font-size="13" fill="#9FB0AE" letter-spacing="1.2">C — SENTENCE CASE</text>
+  <text x="48" y="360" font-size="13" fill="#9FB0AE" letter-spacing="1.2">C - SENTENCE CASE</text>
   <text x="48" y="414" font-size="56" font-weight="600" fill="#F6F1E8">Hear<tspan fill="#E8934A" font-weight="700">ally</tspan></text>
   <text x="430" y="402" font-size="15" fill="#9FB0AE">Sits better at the start of a sentence.</text>
   <text x="430" y="424" font-size="15" fill="#9FB0AE">Slightly more corporate.</text>
   <line x1="48" y1="448" x2="852" y2="448" stroke="#2A3A52"/>
 
   <!-- small sizes -->
-  <text x="48" y="486" font-size="13" fill="#9FB0AE" letter-spacing="1.2">AT SMALL SIZES — THE REAL TEST</text>
+  <text x="48" y="486" font-size="13" fill="#9FB0AE" letter-spacing="1.2">AT SMALL SIZES - THE REAL TEST</text>
   <text x="48" y="524" font-size="22" font-weight="600" fill="#F6F1E8">hear<tspan fill="#E8934A" font-weight="700">Ally</tspan></text>
   <text x="200" y="524" font-size="22" font-weight="600" fill="#F6F1E8">hear<tspan fill="#E8934A" font-weight="700">ally</tspan></text>
   <text x="352" y="524" font-size="22" font-weight="600" fill="#F6F1E8">Hear<tspan fill="#E8934A" font-weight="700">ally</tspan></text>
   <text x="48" y="556" font-size="14" font-weight="600" fill="#F6F1E8">hear<tspan fill="#E8934A" font-weight="700">Ally</tspan></text>
   <text x="200" y="556" font-size="14" font-weight="600" fill="#F6F1E8">hear<tspan fill="#E8934A" font-weight="700">ally</tspan></text>
   <text x="352" y="556" font-size="14" font-weight="600" fill="#F6F1E8">Hear<tspan fill="#E8934A" font-weight="700">ally</tspan></text>
-  <text x="430" y="590" font-size="14" fill="#9FB0AE">In monochrome — a fax, a carrier console, an email client stripping colour — only A keeps the split.</text>
+  <text x="430" y="590" font-size="14" fill="#9FB0AE">In monochrome - a fax, a carrier console, an email client stripping colour - only A keeps the split.</text>
 </svg>

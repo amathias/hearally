@@ -20,7 +20,7 @@
   }
 }
 
-/* Brand tokens. These mirror brand/palette.css — that file stays canonical.
+/* Brand tokens. These mirror brand/palette.css - that file stays canonical.
    Amber is the ally, teal or sand is the account holder. See brand/README.md. */
 @theme {
   --color-ink: #14243A;

@@ -37,7 +37,7 @@ dist/
 # Vendored tooling
 .tools/
 
-# Key material — never commit, this repo is public
+# Key material - never commit, this repo is public
 *.pem
 *.key
 id_*
@@ -46,7 +46,7 @@ id_*
 *_rsa
 .ssh/
 
-# Agent instruction and session files — local only
+# Agent instruction and session files - local only
 CLAUDE.md
 claude.md
 CLAUDE.local.md

@@ -9,7 +9,7 @@ Decided 2026-09-22. **The mark: two people side by side, two sound waves, wordma
 - **Sand `#F6F1E8`** (on dark) or **Teal `#1F6F6B`** (on light) = **the account holder**, the person with the Plaud.
 - **Amber `#E8934A`** = **the ally**. Use the same amber anywhere the people on your side appear: ally names, ally links, "what your allies heard", the second figure in the mark, the outer sound wave.
 
-**The wordmark is the one exception.** It is a single colour and does not encode the split — the mark beside it carries that. The convention governs the mark and the interface, not the logotype.
+**The wordmark is the one exception.** It is a single colour and does not encode the split - the mark beside it carries that. The convention governs the mark and the interface, not the logotype.
 
 ## Files
 

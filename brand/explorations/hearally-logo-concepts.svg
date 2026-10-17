@@ -15,7 +15,7 @@
   </defs>
 
   <rect width="960" height="560" fill="#FFFFFF"/>
-  <text x="48" y="48" class="cap" font-size="20" font-weight="600">Hearally — logo concepts</text>
+  <text x="48" y="48" class="cap" font-size="20" font-weight="600">Hearally - logo concepts</text>
   <text x="48" y="72" class="label">three directions, same idea: someone beside you, hearing with you</text>
 
   <!-- ================= Concept A: Beside ================= -->
@@ -58,7 +58,7 @@
       <path d="M 42 -10 A 36 36 0 0 1 42 38" class="stroke-amber" stroke-width="5"/>
       <text x="64" y="26" font-size="34" font-weight="600" class="ink">hear<tspan class="teal" font-weight="700">Ally</tspan></text>
     </g>
-    <text x="16" y="200" class="cap" font-size="13">Lowercase “hear”, capital “Ally” — the break is visible.</text>
+    <text x="16" y="200" class="cap" font-size="13">Lowercase “hear”, capital “Ally” - the break is visible.</text>
   </g>
 
   <!-- ================= Lockup ================= -->

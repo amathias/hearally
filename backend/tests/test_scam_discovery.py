@@ -123,7 +123,8 @@ class ExtractionTests(unittest.TestCase):
         self.assertEqual(
             clean_title("New Scam: Fake Recall Notices"), "New Scam: Fake Recall Notices"
         )
-        self.assertEqual(clean_title("Well-known tricks — AARP"), "Well-known tricks")
+        self.assertEqual(clean_title("Well-known tricks \u2014 AARP"), "Well-known tricks")
+        self.assertEqual(clean_title("Well-known tricks - AARP"), "Well-known tricks")
 
     def test_a_page_off_the_trusted_list_can_never_become_a_card(self) -> None:
         stray = Page("https://scam-blog.example.com/x", "t", "x", QUERIES[0])

@@ -1,6 +1,6 @@
 # The API edge: CloudFront and WAF in front of the HTTP API.
 #
-# WAF cannot attach to an HTTP API directly — only to CloudFront or a REST API —
+# WAF cannot attach to an HTTP API directly - only to CloudFront or a REST API -
 # so the distribution exists to carry the web ACL as much as to cache.
 #
 # CloudFront adds a shared secret header to every origin request. The backend

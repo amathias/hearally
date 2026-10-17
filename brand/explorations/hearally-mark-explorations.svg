@@ -15,7 +15,7 @@
     </style>
   </defs>
   <rect width="960" height="860" fill="#FFFFFF"/>
-  <text x="48" y="44" fill="#14243A" font-size="20" font-weight="600">Hearally — mark explorations</text>
+  <text x="48" y="44" fill="#14243A" font-size="20" font-weight="600">Hearally - mark explorations</text>
   <text x="48" y="66" class="label">tagline: keeps the people on your side close.</text>
 
   <!-- ============ 1: person + listening arcs ============ -->
@@ -49,7 +49,7 @@
   </g>
   <text x="504" y="252" class="note">Two figures side by side. Literally "on your side".</text>
 
-  <!-- ============ 3: held close — arc wraps around ============ -->
+  <!-- ============ 3: held close - arc wraps around ============ -->
   <text x="48" y="292" class="label">3 · held close</text>
   <g transform="translate(48,302)">
     <rect width="420" height="120" rx="16" class="card"/>

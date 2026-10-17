@@ -1027,7 +1027,7 @@
       d.recordings.map(function (r) {
         return h("tr", {}, [
           cell(when(r.recorded_at)),
-          cell(duration(r.duration_s) || "—", "text-muted"),
+          cell(duration(r.duration_s) || "-", "text-muted"),
           cell(fromLabel(r, d.computers)),
           cell(
             // Transcription is not built yet, so every recording waits.
@@ -1057,7 +1057,7 @@
   function listenCell(r) {
     var kept = r.redacted && r.transcribed_at && Date.now() - new Date(r.transcribed_at).getTime() < KEPT_MS;
     if (!kept) {
-      return h("span", { class: "font-sans text-sm text-muted", text: r.redacted ? "No longer kept" : "—" });
+      return h("span", { class: "font-sans text-sm text-muted", text: r.redacted ? "No longer kept" : "-" });
     }
     var box = h("div", {});
     var play = button("Listen", function () {
@@ -1602,12 +1602,15 @@
               ]
             : [heading("What works in the preview"), capabilities(d.capabilities)];
 
+          // An account that already has results shows them first, even when
+          // nothing is connected right now (a recorder disconnected later).
+          var hasResults = d.latest_summaries.length > 0 || Boolean(last);
           box.replaceChildren.apply(box, [
             d.acknowledged ? null : agreementPanel(d.acknowledgement_version, render),
             status,
-            setUp ? glance(d) : null,
+            setUp || hasResults ? glance(d) : null,
           ]
-            .concat(setUp ? latest.concat(setup) : setup.concat(latest))
+            .concat(setUp || hasResults ? latest.concat(setup) : setup.concat(latest))
             .concat(works)
             .filter(Boolean));
         })
