@@ -64,8 +64,8 @@ Run from a checkout, `setup` schedules the checkout itself rather than copying i
 
 It was inherited from an earlier prototype, where running locally was forced: that wearable's data could only be reached from the owner's own machine. For Hearally's users, often older people whose Plaud syncs to a phone, a program on a computer is the wrong shape, and it is here only because the right shapes are not yet available:
 
-- **A direct connection to the user's Plaud account**, run on our servers: sign in to Plaud once, nothing else. Needs Plaud's OAuth API, which is a private beta closed to new integrations.
-- **Our own phone app, using Plaud Embedded:** the recorder pairs with Hearally's app. Needs Plaud partner credentials, and a Plaud can only be bound to one app at a time, so it would stop working with Plaud's own app.
+- **A direct connection to the user's Plaud account**, run on Hearally's servers: sign in to Plaud once, nothing else. Needs Plaud's OAuth API, which is a private beta closed to new integrations.
+- **A Hearally phone app, using Plaud Embedded:** the recorder pairs with Hearally's app. Needs Plaud partner credentials, and a Plaud can only be bound to one app at a time, so it would stop working with Plaud's own app.
 
 Both are recorded in docs/ARCHITECTURE.md section 2; Plaud sign-in through Plaud's hosted MCP server now works without a computer.
 

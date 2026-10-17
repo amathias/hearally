@@ -6,7 +6,7 @@ Hearally passes along what was mentioned out loud near a [Plaud](https://plaud.a
 
 **It reports what was said. It does not detect what happened.** No fall detection, no health monitoring, no emergency response.
 
-Speech is transcribed by NVIDIA's open **Parakeet** model on servers we run on Nebius AI Cloud. Deciding what is worth passing on uses NVIDIA's open **Nemotron**, hosted on Nebius Token Factory and used only with zero data retention enabled. Nothing is sent to a consumer chatbot.
+Speech is transcribed by NVIDIA's open **Parakeet** model on GPU servers Hearally runs on Nebius AI Cloud. Deciding what is worth passing on uses NVIDIA's open **Nemotron**, hosted on Nebius Token Factory and used only with zero data retention enabled. Nothing is sent to a consumer chatbot.
 
 > Hearally passes along things that were mentioned out loud. It is **not an emergency service** and **not a medical device**. It does not detect falls, accidents or illness, it may miss things, and it may flag things that turn out to be nothing. **In an emergency, call 911.** Care decisions are yours.
 
@@ -24,14 +24,14 @@ Live at [hearally.com](https://hearally.com), with a signed-in dashboard at [hea
 
 Personal AI track. **Demo video (3 minutes):** https://youtu.be/OIYDd4QhXy8
 
-NVIDIA Parakeet for transcription with word timestamps and word confidence, in a GPU job we launch on Nebius AI Cloud; NVIDIA Nemotron for the judgement, on Nebius Token Factory.
+NVIDIA Parakeet for transcription with word timestamps and word confidence, in a GPU job Hearally launches on Nebius AI Cloud; NVIDIA Nemotron for the judgement, on Nebius Token Factory.
 
 ## Prior work, and what is new here
 
 Hearally reuses the design and parts of the engine of an earlier prototype by the same author, built for a different wearable and a different model provider. The engine was copied into this repository and has diverged (see `docs/adr/0001-monorepo-and-copied-engine.md`). New in Hearally:
 
 - **Capture is a wearable recorder** (Plaud today). Hearally works from the account holder's own words: often only their side of a call is recorded, and that is enough to tell what the call was about.
-- **Models are NVIDIA open models on Nebius.** Parakeet runs in a GPU job we launch on Nebius AI Cloud; Nemotron is hosted on Nebius Token Factory.
+- **Models are NVIDIA open models on Nebius.** Parakeet runs in a GPU job Hearally launches on Nebius AI Cloud; Nemotron is hosted on Nebius Token Factory.
 - **Redaction happens in the audio.** Account numbers are silenced in the waveform by the GPU job; the original is deleted as soon as the silenced copy exists.
 - **Known scam scripts, by retrieval-augmented generation (RAG).** A curated library from the FTC, AARP, the IRS, the SSA and others, embedded with Qwen3 on Nebius Token Factory and matched by cosine similarity, in memory; the closest scams are shown to Nemotron as reference. Tavily keeps the library current every week.
 - **Plaud sign-in.** Recordings come straight from the account holder's Plaud account, with no computer.

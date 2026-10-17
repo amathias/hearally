@@ -74,7 +74,7 @@ class AllyTestCase(unittest.TestCase):
         self.clock = Clock(AFTERNOON)
         self.allies = AllyService(self.repo, self.mailer, self.clock)
         self.links = AllyLinkService(self.repo, self.clock)
-        self.allies.set_display_name(SUB, "Aaron")
+        self.allies.set_display_name(SUB, "Sam")
 
     def add(
         self, name: str = "Dana", email: str = "dana@example.com", **extra: Any
@@ -94,7 +94,7 @@ class AccountHolderTests(AllyTestCase):
         ally = self.add()
         self.assertEqual((ally["status"], ally["first"]), ("invited", True))
         [mail] = self.mailer.sent
-        self.assertEqual(mail["subject"], "Aaron would like you as an ally on Hearally")
+        self.assertEqual(mail["subject"], "Sam would like you as an ally on Hearally")
         self.assertIn(NOT_EMERGENCY, mail["text"])
         # Only the digest of the link is stored.
         token = self.mailer.token()
@@ -133,7 +133,7 @@ class AllyLinkTests(AllyTestCase):
         self.add()
         self.repo.put(SUB, item("daily")["sk"], item("daily"))
         view = self.links.view(self.mailer.token())
-        self.assertEqual((view["holder"], view["status"], view["items"]), ("Aaron", "invited", []))
+        self.assertEqual((view["holder"], view["status"], view["items"]), ("Sam", "invited", []))
 
     def test_confirming_is_recorded_and_shows_what_they_may_hear(self) -> None:
         self.clock.now = datetime(2026, 9, 30, 19, 0, tzinfo=UTC).timestamp()

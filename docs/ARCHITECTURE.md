@@ -21,7 +21,7 @@ Either way, the audio is stored at `incoming/<account>/<sha256>` with its checks
 
 ## 3. Transcription
 
-NVIDIA's open **Parakeet TDT 0.6B v3** runs as a GPU job on **Nebius AI Cloud**, which we operate (`transcriber/`).
+NVIDIA's open **Parakeet TDT 0.6B v3** runs as a GPU job on **Nebius AI Cloud** that Hearally launches and operates (`transcriber/`).
 
 - **Dispatch, every 30 minutes**: queued recordings become one batch and one job. The job gets one signed link to a manifest of further signed links; it holds no AWS credentials.
 - **The job**: converts the audio, cuts long recordings at quiet points, transcribes them with word timings and word confidence, and **silences account and card numbers in the audio itself** (any run of number words worth four or more digits, found by word timing). It uploads the transcript and the silenced copy.
@@ -84,7 +84,7 @@ A recorder that runs through someone's day captures things that are nobody else'
 
 Email through **Amazon SES** from `hearally.com`. Every message carries "not an emergency service" and a link to say it was nothing. Providers sit behind interfaces.
 
-- **Heads-up calls** (`backend/src/hearally/calls.py`, `ally_phone.py`). An ally who hears heads-ups can choose to be phoned for one, from their own page. First they prove the number: a six-digit code by text through **AWS End User Messaging Notify** (US only; only a keyed hash of the code is stored, for ten minutes, five tries, three texts a day). Then they tick a box to turn calls on; every change is recorded, append-only. The call is placed by **CALL-E**: a short automated notice ("Hi Dana, this is Hearally with a notice about Aaron"), a brief summary of the heads-up, a request to check their email, whose link opens the ally's page, and "Hearally is not an emergency service". It asks for nothing and ends.
+- **Heads-up calls** (`backend/src/hearally/calls.py`, `ally_phone.py`). An ally who hears heads-ups can choose to be phoned for one, from their own page. First they prove the number: a six-digit code by text through **AWS End User Messaging Notify** (US only; only a keyed hash of the code is stored, for ten minutes, five tries, three texts a day). Then they tick a box to turn calls on; every change is recorded, append-only. The call is placed by **CALL-E**: a short automated notice ("Hi Dana, this is Hearally with a notice about Dad"), a brief summary of the heads-up, a request to check their email, whose link opens the ally's page, and "Hearally is not an emergency service". It asks for nothing and ends.
 - Enforced in code: heads-ups only; only confirmed allies with a proved number and calls on; never during the ally's quiet hours (the email still goes); at most **10 calls per account per calendar month** during the preview, a conditional counter claimed before each call and given back if the call cannot be placed. Each call, or why it was not placed, is logged under "what your allies heard".
 - Text messages to allies are not part of the preview, apart from that one code.
 

@@ -1228,7 +1228,7 @@
       maxlength: "40",
       name: "display-name",
       value: d.display_name || "",
-      placeholder: "For example, Aaron or Mum",
+      placeholder: "For example, Sam or Mum",
       class: "mt-2 w-full max-w-[20rem] rounded-lg border border-line bg-paper px-3 py-2",
       "aria-label": "How your allies know you",
     });

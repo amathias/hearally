@@ -15,14 +15,14 @@ from hearally.ally_phone import DAILY_CODES, MAX_ATTEMPTS, AllyPhoneService, nor
 from hearally.calls import MONTHLY_CALLS, CalleCaller, CallError, CallMessage, task
 from hearally.models import ValidationError
 
-MESSAGE = CallMessage(ally_name="Dana", holder="Aaron", summary="A caller asked for a card number.")
+MESSAGE = CallMessage(ally_name="Dana", holder="Sam", summary="A caller asked for a card number.")
 
 
 class TaskTests(unittest.TestCase):
     def test_a_notice_a_brief_summary_and_where_to_look(self) -> None:
         text = task(MESSAGE)
         for needed in (
-            "Hi Dana, this is Hearally with a notice about Aaron.",
+            "Hi Dana, this is Hearally with a notice about Sam.",
             "A caller asked for a card number.",
             "check your email from Hearally",
             "not an emergency service",
@@ -202,7 +202,7 @@ class CallDeliveryTests(PhoneTestCase):
         Deliverer(self.repo, self.mailer, self.clock, caller=caller).run()
         [(phone, message)] = caller.calls
         self.assertEqual(
-            (phone, message.ally_name, message.holder), ("+15552010123", "Dana", "Aaron")
+            (phone, message.ally_name, message.holder), ("+15552010123", "Dana", "Sam")
         )
         sent = [
             v
