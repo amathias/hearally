@@ -44,7 +44,7 @@ NVIDIA's open **Nemotron**, on **Nebius Token Factory** (hosted, used only with 
 
 A curated library of common phone and doorstep scams (grandparent, government impersonation, jury duty, Medicare and others), each card sourced from the FTC, AARP, the IRS, the SSA, US Courts, IC3 or Medicare.gov (`backend/src/hearally/scam_cards.json`).
 
-- Each conversation is matched against the library with **Qwen3 embeddings** on Token Factory; close cards are shown to Nemotron as reference, never as evidence.
+- **Retrieval-augmented generation (RAG).** Each conversation is matched against the library with **Qwen3 embeddings** on Token Factory, by cosine similarity, in memory; close cards are shown to Nemotron as reference, never as evidence, and the output schema only accepts a card that was shown.
 - A heads-up **names** a script only when the model's judgement, the model's match and the retrieval score all agree. The email then says what the call sounded like and links the publisher's own page. A named script never changes the grade.
 - **Kept current weekly with Tavily**: fixed searches of trusted publishers only. Code accepts a new card only if it describes one phone or doorstep scam and is not a near-duplicate of an existing card.
 - Evaluation: `docs/eval/scam-retrieval.md`.

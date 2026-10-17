@@ -22,7 +22,9 @@ Live at [hearally.com](https://hearally.com), with a signed-in dashboard at [hea
 
 ## Built for the Nebius × NVIDIA Global AI Hackathon
 
-Personal AI track. NVIDIA Parakeet for transcription with word timestamps and word confidence, in a GPU job we launch on Nebius AI Cloud; NVIDIA Nemotron for the judgement, on Nebius Token Factory.
+Personal AI track. **Demo video (3 minutes):** https://youtu.be/OIYDd4QhXy8
+
+NVIDIA Parakeet for transcription with word timestamps and word confidence, in a GPU job we launch on Nebius AI Cloud; NVIDIA Nemotron for the judgement, on Nebius Token Factory.
 
 ## Prior work, and what is new here
 
@@ -31,7 +33,7 @@ Hearally reuses the design and parts of the engine of an earlier prototype by th
 - **Capture is a wearable recorder** (Plaud today). Hearally works from the account holder's own words: often only their side of a call is recorded, and that is enough to tell what the call was about.
 - **Models are NVIDIA open models on Nebius.** Parakeet runs in a GPU job we launch on Nebius AI Cloud; Nemotron is hosted on Nebius Token Factory.
 - **Redaction happens in the audio.** Account numbers are silenced in the waveform by the GPU job; the original is deleted as soon as the silenced copy exists.
-- **Known scam scripts.** A curated library from the FTC, AARP, the IRS, the SSA and others, retrieved with embeddings on Nebius and kept current weekly with Tavily.
+- **Known scam scripts, by retrieval-augmented generation (RAG).** A curated library from the FTC, AARP, the IRS, the SSA and others, embedded with Qwen3 on Nebius Token Factory and matched by cosine similarity, in memory; the closest scams are shown to Nemotron as reference. Tavily keeps the library current every week.
 - **Plaud sign-in.** Recordings come straight from the account holder's Plaud account, with no computer.
 - **Confidence-aware messages.** Parakeet returns word confidence. When a recording is unclear, an appointment or a request for help waits for the daily list, and a heads-up says the recording was unclear.
 - **The dignity filter** (docs/ARCHITECTURE.md section 6), which keeps embarrassing but unimportant material away from allies.
